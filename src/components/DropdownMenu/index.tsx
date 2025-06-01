@@ -1,19 +1,27 @@
-import { JSX, useState } from "react";
+import { Dispatch, JSX, SetStateAction, useState } from "react";
 import { capitalize } from "src/utils/capitalize";
 import { CATEGORIES } from "src/utils/constants";
 import ClickAwayListener from "react-click-away-listener";
 import { removeUnderlines } from "src/utils/removeUnderlines";
+import { Category } from "src/types";
+import { motion, AnimatePresence } from "motion/react";
 
-export const DropdownMenu = (): JSX.Element => {
+type Props = {
+  selectedCategory: Category;
+  setSelectedCategory: Dispatch<SetStateAction<Category>>;
+};
+
+export const DropdownMenu = ({
+  selectedCategory,
+  setSelectedCategory,
+}: Props): JSX.Element => {
   const [isFocusedDropdown, setIsFocusedDropdown] = useState(false);
-  const [selectedCategory, setSelectedCategory] =
-    useState<(typeof CATEGORIES)[number]>("age");
 
   return (
     <ClickAwayListener onClickAway={() => setIsFocusedDropdown(false)}>
       <div
         onClick={() => setIsFocusedDropdown((prev) => !prev)}
-        className={`cursor-pointer bg-white w-[290px] h-[45px] rounded-sm ${
+        className={`cursor-pointer bg-white min-w-[290px] max-w-[290px] h-[45px] rounded-sm ${
           isFocusedDropdown ? "outline-3 outline-blue-500" : ""
         }`}
       >
@@ -21,26 +29,45 @@ export const DropdownMenu = (): JSX.Element => {
           <p className="text-xl font-bold">
             {removeUnderlines(capitalize(selectedCategory))}
           </p>
-          <img
+          <motion.img
             src="/images/arrow-down.png"
             alt="arrow-down"
             className="w-[20px] h-[20px] object-contain pointer-events-none select-none"
+            animate={{
+              rotateX: isFocusedDropdown ? 180 : 0,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut",
+            }}
           />
         </div>
 
-        {isFocusedDropdown && (
-          <div className="absolute mt-4 outline-3 outline-blue-500 rounded-sm">
-            {CATEGORIES.map((category, index) => (
-              <div
-                key={`category-${category}-${index}`}
-                className="bg-white w-[290px] font-bold px-3 py-2 hover:bg-blue-50 hover:text-blue-700"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {capitalize(removeUnderlines(category))}
-              </div>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {isFocusedDropdown && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 25,
+              }}
+              className="absolute mt-4 outline-3 outline-blue-500 rounded-sm"
+            >
+              {CATEGORIES.map((category, index) => (
+                <div
+                  key={`category-${category}-${index}`}
+                  className="bg-white w-[290px] font-bold px-3 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {capitalize(removeUnderlines(category))}
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </ClickAwayListener>
   );
