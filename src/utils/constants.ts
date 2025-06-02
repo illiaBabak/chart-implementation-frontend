@@ -6,3 +6,5 @@ export const CATEGORIES = [
   "location",
   "birth_date",
 ] as const;
+
+export const API_URL = "http://localhost:3001";
