@@ -6,7 +6,10 @@ export const isString = (data: unknown): data is string =>
 export const isNumber = (data: unknown): data is number =>
   typeof data === "number";
 
-export const isDate = (data: unknown): data is Date => data instanceof Date;
+export const isDate = (data: unknown): data is Date => {
+  if (isString(data)) return !isNaN(new Date(data).getTime());
+  return data instanceof Date;
+};
 
 export const isObject = (data: unknown): data is object =>
   typeof data === "object" && data !== null;
@@ -27,8 +30,8 @@ export const isUser = (data: unknown): data is User =>
   isString(data.industry) &&
   "location" in data &&
   isString(data.location) &&
-  "birthDate" in data &&
-  isDate(data.birthDate);
+  "birth_date" in data &&
+  isDate(data.birth_date);
 
 export const isUserArr = (data: unknown): data is User[] =>
   Array.isArray(data) && data.every(isUser);
