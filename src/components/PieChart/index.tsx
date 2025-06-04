@@ -1,9 +1,17 @@
 import { JSX } from "react";
+import { ChartProps } from "src/types";
+import { Chart } from "./components/Chart";
+import { Legend } from "./components/Legend";
 
-export const PieChart = (): JSX.Element => {
+export const PieChart = ({ dataToDisplay }: ChartProps): JSX.Element => {
   return (
-    <div className="w-[40%] h-[500px] bg-white rounded-sm border-3 border-zinc-400 p-4 text-center">
+    <div className="lg:w-[40%] w-full h-[500px] bg-white rounded-sm border-3 border-zinc-400 p-4 text-center">
       <h1 className="text-xl font-semibold">Users stats on pie</h1>
+
+      <div className="relative w-full h-[80%] flex xl:justify-around justify-center xl:items-start items-center my-8 flex-col xl:flex-row">
+        <Chart dataToDisplay={dataToDisplay} />
+        <Legend dataToDisplay={dataToDisplay} />
+      </div>
     </div>
   );
 };

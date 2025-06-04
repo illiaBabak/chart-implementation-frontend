@@ -54,7 +54,7 @@ export const DropdownMenu = ({
                 stiffness: 400,
                 damping: 25,
               }}
-              className="absolute mt-4 outline-3 outline-blue-500 rounded-sm"
+              className="absolute mt-4 outline-3 outline-blue-500 rounded-sm z-10"
             >
               {CATEGORIES.map((category, index) => (
                 <div

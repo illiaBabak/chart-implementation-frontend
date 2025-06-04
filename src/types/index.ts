@@ -10,5 +10,15 @@ export type User = {
   workplace: string;
   industry: string;
   location: string;
-  birthDate: Date;
+  birth_date: Date;
+};
+
+export type ChartItem = {
+  label: string;
+  percentage: number;
+  color: string;
+};
+
+export type ChartProps = {
+  dataToDisplay: ChartItem[];
 };
