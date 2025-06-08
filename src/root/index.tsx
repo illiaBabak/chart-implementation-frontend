@@ -34,14 +34,14 @@ export const App = (): JSX.Element => {
   }, [users, selectedCategory]);
 
   return (
-    <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center lg:items-start lg:h-screen p-8 relative">
+    <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
       <DropdownMenu
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
       />
-      <div className="flex flex-col mt-12 lg:mt-0 lg:flex-row items-center justify-between w-full h-full gap-12">
+      <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
         <PieChart dataToDisplay={dataToDisplay} />
-        <BarChart />
+        <BarChart dataToDisplay={dataToDisplay} />
       </div>
       {isLoading && <Loader />}
     </div>
