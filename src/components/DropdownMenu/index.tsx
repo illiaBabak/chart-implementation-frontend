@@ -20,13 +20,14 @@ export const DropdownMenu = ({
   return (
     <ClickAwayListener onClickAway={() => setIsFocusedDropdown(false)}>
       <div
+        data-testid="dropdown-menu"
         onClick={() => setIsFocusedDropdown((prev) => !prev)}
         className={`cursor-pointer bg-white min-w-[290px] max-w-[290px] h-[45px] rounded-sm ${
           isFocusedDropdown ? "outline-3 outline-blue-500" : ""
         }`}
       >
         <div className="flex items-center justify-between h-full w-full px-3">
-          <p className="text-xl font-bold">
+          <p data-testid="dropdown-text" className="text-xl font-bold">
             {removeUnderlines(capitalize(selectedCategory))}
           </p>
           <motion.img
@@ -58,6 +59,7 @@ export const DropdownMenu = ({
             >
               {CATEGORIES.map((category, index) => (
                 <div
+                  data-testid={`dropdown-category-${category}`}
                   key={`category-${category}-${index}`}
                   className="bg-white w-[290px] font-bold px-3 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
                   onClick={() => setSelectedCategory(category)}
