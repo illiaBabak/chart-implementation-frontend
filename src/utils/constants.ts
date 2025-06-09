@@ -8,4 +8,4 @@ export const CATEGORIES = [
 ] as const;
 
 export const API_URL =
-  "https://chart-implementation-backend-production.up.railway.app";
+  "https://chart-implementation-backend-production.up.railway.app/api";
