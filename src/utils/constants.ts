@@ -7,4 +7,5 @@ export const CATEGORIES = [
   "birth_date",
 ] as const;
 
-export const API_URL = "https://chart-implementation-backend.up.railway.app";
+export const API_URL =
+  "https://chart-implementation-backend.up.railway.app/api";
