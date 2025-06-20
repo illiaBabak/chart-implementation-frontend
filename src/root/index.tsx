@@ -26,10 +26,13 @@ export const App = (): JSX.Element => {
       return acc;
     }, {});
 
+    const maxPercentage = Math.max(...Object.values(countMap));
+
     return Object.entries(countMap).map(([key, count]) => ({
       label: key,
       percentage: Number(((count / totalUsers) * 100).toFixed(1)),
       color: generateRandomColor(),
+      step: (maxPercentage * 2) / 5,
     }));
   }, [users, selectedCategory]);
 

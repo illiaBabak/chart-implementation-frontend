@@ -17,6 +17,7 @@ export type ChartItem = {
   label: string;
   percentage: number;
   color: string;
+  step: number;
 };
 
 export type ChartProps = {

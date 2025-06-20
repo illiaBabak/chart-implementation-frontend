@@ -1,30 +1,13 @@
-import { JSX, useState, useEffect } from "react";
+import { JSX } from "react";
 import { Tooltip } from "src/components/Tooltip";
 import { ChartProps } from "src/types";
 
 export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
-  const [percentageMarkers, setPercentageMarkers] = useState<number[]>([]);
-
-  useEffect(() => {
-    const maxPercentage = Math.max(
-      ...dataToDisplay.map((item) => item.percentage)
-    );
-
-    if (maxPercentage >= 50) {
-      setPercentageMarkers([100, 80, 60, 40, 20, 0]);
-      return;
-    } else {
-      const markers = [];
-      const maxMarker = maxPercentage * 2;
-      const step = maxMarker / 5;
-
-      for (let i = 0; i <= maxMarker; i += step) {
-        markers.push(Number(i.toFixed(1)));
-      }
-
-      setPercentageMarkers(markers.reverse());
-    }
-  }, [dataToDisplay]);
+  const percentageMarkers = dataToDisplay.length
+    ? Array.from({ length: 6 }, (_, index) =>
+        (dataToDisplay[0].step * index).toFixed(1)
+      ).reverse()
+    : [];
 
   const getBarHeight = (percentage: number) => {
     return `${
