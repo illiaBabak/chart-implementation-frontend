@@ -1,28 +1,43 @@
-import { JSX, useState } from "react";
+import { JSX, useState, useEffect } from "react";
+import { Tooltip } from "src/components/Tooltip";
 import { ChartProps } from "src/types";
 
-const PERCENTAGE_MARKERS = [100, 80, 60, 40, 20, 0];
-
 export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
-  const [tooltip, setTooltip] = useState<{
-    percentage: number;
-    x: number;
-    y: number;
-  } | null>(null);
+  const [percentageMarkers, setPercentageMarkers] = useState<number[]>([]);
 
-  const handleMouseEnter = (x: number, y: number, percentage: number) => {
-    setTooltip({
-      percentage,
-      x,
-      y,
-    });
+  useEffect(() => {
+    const maxPercentage = Math.max(
+      ...dataToDisplay.map((item) => item.percentage)
+    );
+
+    if (maxPercentage >= 50) {
+      setPercentageMarkers([100, 80, 60, 40, 20, 0]);
+      return;
+    } else {
+      const markers = [];
+      const maxMarker = maxPercentage * 2;
+      const step = maxMarker / 5;
+
+      for (let i = 0; i <= maxMarker; i += step) {
+        markers.push(Number(i.toFixed(1)));
+      }
+
+      setPercentageMarkers(markers.reverse());
+    }
+  }, [dataToDisplay]);
+
+  const getBarHeight = (percentage: number) => {
+    return `${
+      percentage *
+      (50 / Math.max(...dataToDisplay.map((item) => item.percentage)))
+    }%`;
   };
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center me-0 mb-5 lg:mb-0 lg:me-3 overflow-x-auto overflow-y-hidden">
       <div className="flex flex-row w-full h-full">
         <div className="flex flex-col justify-between h-[calc(100%-40px)] pr-2 text-sm text-gray-600 shrink-0">
-          {PERCENTAGE_MARKERS.map((percentage) => (
+          {percentageMarkers.map((percentage) => (
             <div key={`percentage-${percentage}`} className="text-right">
               {percentage}%
             </div>
@@ -32,7 +47,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
         <div className="flex-1 relative h-full">
           <div className="h-full relative">
             <div className="absolute top-0 left-[3px] inset-0 flex flex-col justify-between h-[calc(100%-40px)] w-full">
-              {PERCENTAGE_MARKERS.map((percentage) => (
+              {percentageMarkers.map((percentage) => (
                 <div
                   key={`grid-line-${percentage}`}
                   className="w-full border-t border-gray-300 z-10"
@@ -42,18 +57,20 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
 
             <div className="flex flex-row h-[calc(100%-40px)] gap-2 sm:gap-3 md:gap-4 items-end border-s-3 z-20 border-zinc-400 px-2 sm:px-3 min-w-max">
               {dataToDisplay.map((item, index) => (
-                <div
+                <Tooltip
                   key={`bar-chart-item-${item.label}-${index}`}
+                  content={item.label}
                   style={{
-                    backgroundColor: item.color,
-                    height: `${item.percentage}%`,
+                    height: getBarHeight(item.percentage),
                   }}
-                  className="min-w-[20px] sm:min-w-[22px] md:min-w-[25px] z-10 cursor-pointer transition-opacity hover:opacity-90"
-                  onMouseEnter={({ clientX, clientY }) =>
-                    handleMouseEnter(clientX, clientY, item.percentage)
-                  }
-                  onMouseLeave={() => setTooltip(null)}
-                />
+                >
+                  <div
+                    style={{
+                      backgroundColor: item.color,
+                    }}
+                    className="min-w-[20px] h-full sm:min-w-[22px] md:min-w-[25px] z-10 cursor-pointer transition-opacity hover:opacity-90"
+                  />
+                </Tooltip>
               ))}
             </div>
 
@@ -70,18 +87,6 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
           </div>
         </div>
       </div>
-
-      {tooltip && (
-        <div
-          className="fixed z-10 px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-md opacity-100 pointer-events-none"
-          style={{
-            left: `${tooltip.x + 10}px`,
-            top: `${tooltip.y - 40}px`,
-          }}
-        >
-          {tooltip.percentage}%
-        </div>
-      )}
     </div>
   );
 };

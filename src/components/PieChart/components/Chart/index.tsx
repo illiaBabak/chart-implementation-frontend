@@ -1,40 +1,31 @@
-import { JSX, useState, useRef } from "react";
+import { JSX, useRef, useState } from "react";
+import { Tooltip } from "src/components/Tooltip";
 import { ChartProps } from "src/types";
 
 const RADIUS = 80;
 const STROKE_WIDTH = 40;
-const CX = 100;
-const CY = 100;
+const CX = 125;
+const CY = 125;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
-  const [tooltip, setTooltip] = useState<{
-    percentage: number;
-    x: number;
-    y: number;
-  } | null>(null);
+  const [hoveredSectionText, setHoveredSectionText] = useState("");
 
-  const svgRef = useRef<SVGSVGElement>(null);
-  let offset = 0;
+  const offset = useRef(0);
 
-  const handleMouseEnter = (x: number, y: number, percentage: number) => {
-    const svgRect = svgRef.current?.getBoundingClientRect();
-
-    if (svgRect)
-      setTooltip({
-        percentage,
-        x: x - svgRect.left,
-        y: y - svgRect.top,
-      });
-  };
+  offset.current = 0;
 
   return (
-    <div className="relative">
-      <svg ref={svgRef} width={250} height={250}>
+    <Tooltip content={hoveredSectionText}>
+      <svg
+        width={250}
+        height={250}
+        className="flex justify-center items-center"
+      >
         {dataToDisplay.map((segment, index) => {
           const dash = (segment.percentage / 100) * CIRCUMFERENCE;
-          const dashOffset = offset;
-          offset += dash;
+          const dashOffset = offset.current;
+          offset.current += dash;
 
           return (
             <circle
@@ -47,28 +38,14 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
               strokeWidth={STROKE_WIDTH}
               strokeDasharray={`${dash} ${CIRCUMFERENCE - dash}`}
               strokeDashoffset={-dashOffset}
-              transform="rotate(-90, 130, 100)"
+              transform={`rotate(-90, ${CX}, ${CY})`}
               className="cursor-pointer transition-opacity hover:opacity-90"
-              onMouseEnter={({ clientX, clientY }) =>
-                handleMouseEnter(clientX, clientY, segment.percentage)
-              }
-              onMouseLeave={() => setTooltip(null)}
+              onMouseEnter={() => setHoveredSectionText(segment.label)}
+              onMouseLeave={() => setHoveredSectionText("")}
             />
           );
         })}
       </svg>
-
-      {tooltip && (
-        <div
-          className="absolute z-10 px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-md opacity-100 pointer-events-none"
-          style={{
-            left: tooltip.x + 10,
-            top: tooltip.y + 10,
-          }}
-        >
-          {tooltip.percentage}%
-        </div>
-      )}
-    </div>
+    </Tooltip>
   );
 };
