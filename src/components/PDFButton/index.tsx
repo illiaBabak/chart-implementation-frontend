@@ -1,17 +1,17 @@
 import { ChartItem } from "src/types";
-import { createCSV } from "src/utils/createCSV";
+import { createPdf } from "src/utils/createPDF";
 
 type Props = {
   data: ChartItem[];
 };
 
-export const CSVButton = ({ data }: Props) => {
+export const PDFButton = ({ data }: Props) => {
   return (
     <button
-      onClick={() => createCSV(data)}
+      onClick={() => createPdf(data)}
       className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
     >
-      Export to CSV
+      Export to PDF
     </button>
   );
 };

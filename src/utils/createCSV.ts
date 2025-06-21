@@ -1,4 +1,4 @@
-export const convertToCSV = (
+export const createCSV = (
   data: Record<string, string | number | boolean>[]
 ) => {
   const headers = Object.keys(data[0]);

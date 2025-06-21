@@ -8,6 +8,7 @@ import { Loader } from "src/components/Loader";
 import { isDate } from "src/utils/guards";
 import { generateRandomColor } from "src/utils/generateRandomColor";
 import { CSVButton } from "src/components/CSVButton";
+import { PDFButton } from "src/components/PDFButton";
 
 export const App = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("age");
@@ -39,13 +40,14 @@ export const App = (): JSX.Element => {
 
   return (
     <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
-      <div className="flex flex-row items-center justify-between w-full">
+      <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
         <DropdownMenu
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
         />
         <div className="flex flex-row items-center gap-4">
           <CSVButton data={dataToDisplay} />
+          <PDFButton data={dataToDisplay} />
         </div>
       </div>
       <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
