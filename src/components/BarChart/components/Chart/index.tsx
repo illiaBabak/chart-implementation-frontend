@@ -17,7 +17,10 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center me-0 mb-5 lg:mb-0 lg:me-3 overflow-x-auto overflow-y-hidden">
+    <div
+      data-testid="bar-chart-container"
+      className="w-full h-full flex flex-col items-center justify-center me-0 mb-5 lg:mb-0 lg:me-3 overflow-x-auto overflow-y-hidden"
+    >
       <div className="flex flex-row w-full h-full">
         <div className="flex flex-col justify-between h-[calc(100%-40px)] pr-2 text-sm text-gray-600 shrink-0">
           {percentageMarkers.map((percentage) => (
@@ -48,6 +51,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
                   }}
                 >
                   <div
+                    data-testid={`bar-column-${item.label}`}
                     style={{
                       backgroundColor: item.color,
                     }}
@@ -61,6 +65,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
               {dataToDisplay.map((item, index) => (
                 <div
                   key={`label-${item.label}-${index}`}
+                  data-testid={`bar-label-${item.label}`}
                   className="h-[16px] w-[20px] rotate-45 sm:min-w-[22px] sm:max-w-[22px] md:min-w-[25px] md:max-w-[25px] text-center text-[10px] text-gray-600 truncate"
                 >
                   {item.label}

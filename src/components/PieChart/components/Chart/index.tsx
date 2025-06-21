@@ -18,6 +18,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
   return (
     <Tooltip content={hoveredSectionText}>
       <svg
+        data-testid="pie-chart-svg"
         width={250}
         height={250}
         className="flex justify-center items-center"
@@ -30,6 +31,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
           return (
             <circle
               key={`circle-${index}-${segment.label}`}
+              data-testid={`pie-segment-${segment.label}`}
               cx={CX}
               cy={CY}
               r={RADIUS}
