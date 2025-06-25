@@ -47,7 +47,7 @@ export const App = (): JSX.Element => {
         />
         <div className="flex flex-row items-center gap-4">
           <CSVButton data={dataToDisplay} />
-          <PDFButton data={dataToDisplay} />
+          <PDFButton selectedCategory={selectedCategory} />
         </div>
       </div>
       <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
