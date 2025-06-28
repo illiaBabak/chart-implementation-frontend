@@ -23,3 +23,11 @@ export type ChartItem = {
 export type ChartProps = {
   dataToDisplay: ChartItem[];
 };
+
+export type Chart = {
+  chart_type: string;
+  status: string;
+  version: number;
+  key: string;
+  url: string | null;
+};
