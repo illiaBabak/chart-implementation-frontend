@@ -45,8 +45,10 @@ const generatePdf = async ({
   URL.revokeObjectURL(url);
 };
 
-const getDocuments = async (): Promise<Chart[]> => {
-  const response = await fetch(`${API_URL}/pdf/get-documents`);
+const getDocuments = async (chartType: Category): Promise<Chart[]> => {
+  const response = await fetch(
+    `${API_URL}/pdf/get-documents?chartType=${chartType}`
+  );
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
 
@@ -78,10 +80,12 @@ export const useGeneratePdf = (): UseMutationResult<
     mutationFn: generatePdf,
   });
 
-export const useGetDocuments = (): UseQueryResult<Chart[], Error> =>
+export const useGetDocuments = (
+  chartType: Category
+): UseQueryResult<Chart[], Error> =>
   useQuery({
-    queryKey: [PDF_GET_DOCUMENTS_KEY],
-    queryFn: getDocuments,
+    queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+    queryFn: () => getDocuments(chartType),
   });
 
 export const useGetDocument = (
