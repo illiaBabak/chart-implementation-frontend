@@ -1,4 +1,4 @@
-import { JSX, useMemo, useState } from "react";
+import { createContext, JSX, useEffect, useMemo, useState } from "react";
 import { DropdownMenu } from "src/components/DropdownMenu";
 import { PieChart } from "src/components/PieChart";
 import { BarChart } from "src/components/BarChart";
@@ -9,9 +9,21 @@ import { isDate } from "src/utils/guards";
 import { generateRandomColor } from "src/utils/generateRandomColor";
 import { CSVButton } from "src/components/CSVButton";
 import { PDFButton } from "src/components/PDFButton";
+import { Menu } from "src/components/Menu";
+
+export const GlobalContext = createContext<{
+  setShouldShowMenu: (shouldShowMenu: boolean) => void;
+}>({
+  setShouldShowMenu: () => {
+    throw new Error("GlobalContext is not initialized");
+  },
+});
 
 export const App = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("age");
+
+  const [shouldShowMenu, setShouldShowMenu] = useState(false);
+
   const { data: users, isLoading } = useGetUsersQuery();
 
   const dataToDisplay = useMemo(() => {
@@ -38,23 +50,35 @@ export const App = (): JSX.Element => {
     }));
   }, [users, selectedCategory]);
 
+  useEffect(() => {
+    setShouldShowMenu(false);
+  }, [selectedCategory]);
+
   return (
-    <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
-      <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
-        <DropdownMenu
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
-        <div className="flex flex-row items-center gap-4">
-          <CSVButton data={dataToDisplay} />
-          <PDFButton selectedCategory={selectedCategory} />
+    <GlobalContext.Provider value={{ setShouldShowMenu }}>
+      <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
+        <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
+          <DropdownMenu
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+          <div className="flex flex-row items-center gap-4">
+            <CSVButton data={dataToDisplay} />
+            <PDFButton selectedCategory={selectedCategory} />
+          </div>
         </div>
+        <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
+          <PieChart dataToDisplay={dataToDisplay} />
+          <BarChart dataToDisplay={dataToDisplay} />
+        </div>
+        {shouldShowMenu && (
+          <Menu
+            onClose={() => setShouldShowMenu(false)}
+            selectedCategory={selectedCategory}
+          />
+        )}
+        {isLoading && <Loader />}
       </div>
-      <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
-        <PieChart dataToDisplay={dataToDisplay} />
-        <BarChart dataToDisplay={dataToDisplay} />
-      </div>
-      {isLoading && <Loader />}
-    </div>
+    </GlobalContext.Provider>
   );
 };

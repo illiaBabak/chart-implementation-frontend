@@ -3,6 +3,8 @@ import {
   useQuery,
   UseMutationResult,
   UseQueryResult,
+  UseQueryOptions,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { API_URL } from "src/utils/constants";
 import {
@@ -33,11 +35,13 @@ const generatePdf = async ({
 
   const blob = await response.blob();
 
+  if (!blob.size) return;
+
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${chartType}.pdf`;
+  link.download = `${chartType}-v1.pdf`;
   document.body.appendChild(link);
   link.click();
 
@@ -74,11 +78,19 @@ export const useGeneratePdf = (): UseMutationResult<
     chartType: Category;
   },
   unknown
-> =>
-  useMutation({
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationKey: [PDF_MUTATION_KEY, PDF_GENERATE_DOCUMENT_KEY],
     mutationFn: generatePdf,
+    onSettled: async (_, __, { chartType }) => {
+      queryClient.invalidateQueries({
+        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+      });
+    },
   });
+};
 
 export const useGetDocuments = (
   chartType: Category
@@ -89,9 +101,11 @@ export const useGetDocuments = (
   });
 
 export const useGetDocument = (
-  key: string
+  key: string,
+  options?: Partial<UseQueryOptions<Chart | null, Error>>
 ): UseQueryResult<Chart | null, Error> =>
   useQuery({
     queryKey: [PDF_GET_DOCUMENT_KEY, key],
     queryFn: () => getDocument(key),
+    ...options,
   });
