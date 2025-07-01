@@ -18,8 +18,10 @@ import { isChart, isChartArray } from "src/utils/guards";
 
 const generatePdf = async ({
   chartType,
+  key,
 }: {
   chartType: Category;
+  key: string;
 }): Promise<void> => {
   const response = await fetch(`${API_URL}/pdf/generate-document`, {
     method: "POST",
@@ -28,6 +30,7 @@ const generatePdf = async ({
     },
     body: JSON.stringify({
       chartType,
+      key,
     }),
   });
 
@@ -76,6 +79,7 @@ export const useGeneratePdf = (): UseMutationResult<
   Error,
   {
     chartType: Category;
+    key: string;
   },
   unknown
 > => {
@@ -84,10 +88,36 @@ export const useGeneratePdf = (): UseMutationResult<
   return useMutation({
     mutationKey: [PDF_MUTATION_KEY, PDF_GENERATE_DOCUMENT_KEY],
     mutationFn: generatePdf,
-    onSettled: async (_, __, { chartType }) => {
+    onSettled: async (_, __, { chartType, key }) => {
       queryClient.invalidateQueries({
-        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType, key],
       });
+    },
+    onMutate: async (variables) => {
+      const prevQueryData = queryClient.getQueryData<Chart[]>([
+        PDF_GET_DOCUMENTS_KEY,
+        variables.chartType,
+      ]);
+
+      const latestVersion = Math.max(
+        ...(prevQueryData?.map((doc) => doc.version ?? 0) ?? [0])
+      );
+
+      queryClient.setQueryData(
+        [PDF_GET_DOCUMENTS_KEY, variables.chartType],
+        (prev: Chart[]) => {
+          return [
+            ...(prev ?? []),
+            {
+              chart_type: variables.chartType,
+              status: "new",
+              key: variables.key,
+              url: null,
+              version: latestVersion + 1,
+            },
+          ];
+        }
+      );
     },
   });
 };

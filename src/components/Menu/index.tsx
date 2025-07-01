@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
-import { useGetDocument, useGetDocuments } from "src/api/pdf";
+import { useGetDocuments } from "src/api/pdf";
 import { Category, Chart } from "src/types";
-import { useQueryClient } from "@tanstack/react-query";
-import { PDF_GET_DOCUMENTS_KEY } from "src/api/constants";
 
 type Props = {
   onClose: () => void;
@@ -10,29 +7,7 @@ type Props = {
 };
 
 export const Menu = ({ onClose, selectedCategory }: Props) => {
-  const [pollingDocKey, setPollingDocKey] = useState<string | null>(null);
-
   const { data: documents } = useGetDocuments(selectedCategory);
-
-  const { data } = useGetDocument(pollingDocKey ?? "", {
-    enabled: !!pollingDocKey,
-    refetchInterval: 1000,
-  });
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const key = documents?.find((doc) => doc.status === "new")?.key;
-
-    if (key) setPollingDocKey(key);
-
-    if (data && (data?.status === "success" || data?.status === "error")) {
-      setPollingDocKey(null);
-      queryClient.invalidateQueries({
-        queryKey: [PDF_GET_DOCUMENTS_KEY, data?.chart_type],
-      });
-    }
-  }, [documents, data, queryClient, pollingDocKey, setPollingDocKey]);
 
   const handleDownload = async (doc: Chart) => {
     if (!doc.url) return;
