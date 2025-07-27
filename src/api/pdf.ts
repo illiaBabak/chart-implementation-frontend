@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { API_URL } from "src/utils/constants";
 import {
+  PDF_DELETE_DOCUMENT_KEY,
   PDF_GENERATE_DOCUMENT_KEY,
   PDF_GET_DOCUMENT_KEY,
   PDF_GET_DOCUMENTS_KEY,
@@ -72,6 +73,15 @@ const getDocument = async (key: string): Promise<Chart | null> => {
   const data = await response.json();
 
   return isChart(data) ? data : null;
+};
+
+const deleteDocument = async (key: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/pdf/delete-document?key=${key}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok)
+    throw new Error(`Error deleting document: ${response.status}`);
 };
 
 export const useGeneratePdf = (): UseMutationResult<
@@ -139,3 +149,42 @@ export const useGetDocument = (
     queryFn: () => getDocument(key),
     ...options,
   });
+
+export const useDeleteDocument = (): UseMutationResult<
+  void,
+  Error,
+  {
+    key: string;
+    chartType: string;
+  },
+  unknown
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [PDF_MUTATION_KEY, PDF_DELETE_DOCUMENT_KEY],
+    mutationFn: ({ key }) => deleteDocument(key),
+    onMutate: async ({ key, chartType }) => {
+      await queryClient.cancelQueries({
+        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+      });
+
+      const prevQueryData = queryClient.getQueryData<Chart[]>([
+        PDF_GET_DOCUMENTS_KEY,
+        chartType,
+      ]);
+
+      const newQueryData = prevQueryData?.filter((doc) => doc.key !== key);
+
+      queryClient.setQueryData(
+        [PDF_GET_DOCUMENTS_KEY, chartType],
+        newQueryData
+      );
+    },
+    onSettled: async (_, __, { chartType }) => {
+      queryClient.invalidateQueries({
+        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+      });
+    },
+  });
+};
