@@ -10,6 +10,7 @@ import { generateRandomColor } from "src/utils/generateRandomColor";
 import { PDFButton } from "src/components/PDFButton";
 import { Menu } from "src/components/Menu";
 import { createCSV } from "src/utils/createCSV";
+import { ArchiveModal } from "src/components/ArchiveModal";
 
 export const GlobalContext = createContext<{
   setShouldShowMenu: (shouldShowMenu: boolean) => void;
@@ -23,6 +24,7 @@ export const App = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("age");
 
   const [shouldShowMenu, setShouldShowMenu] = useState(false);
+  const [shouldShowArchiveModal, setShouldShowArchiveModal] = useState(false);
 
   const { data: users, isLoading } = useGetUsersQuery();
 
@@ -69,7 +71,14 @@ export const App = (): JSX.Element => {
             >
               Export to CSV
             </button>
+
             <PDFButton selectedCategory={selectedCategory} />
+            <button
+              onClick={() => setShouldShowArchiveModal(true)}
+              className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
+            >
+              Export to archive
+            </button>
           </div>
         </div>
         <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
@@ -81,6 +90,9 @@ export const App = (): JSX.Element => {
             onClose={() => setShouldShowMenu(false)}
             selectedCategory={selectedCategory}
           />
+        )}
+        {shouldShowArchiveModal && (
+          <ArchiveModal onClose={() => setShouldShowArchiveModal(false)} />
         )}
         {isLoading && <Loader />}
       </div>
