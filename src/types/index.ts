@@ -31,3 +31,5 @@ export type Chart = {
   key: string;
   url: string | null;
 };
+
+export type ChartType = "bar" | "pie" | "both";

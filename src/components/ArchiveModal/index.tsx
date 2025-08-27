@@ -1,7 +1,9 @@
-import { JSX, useMemo, useState } from "react";
+import { JSX, useState } from "react";
+import { useGenerateArchive } from "src/api/pdf";
+import { Category, ChartType } from "src/types";
+import { capitalize } from "src/utils/capitalize";
 import { CATEGORIES } from "src/utils/constants";
-
-type ChartType = "bar" | "pie" | "both";
+import { removeUnderlines } from "src/utils/removeUnderlines";
 
 const options: { label: string; value: ChartType }[] = [
   { label: "Bar chart", value: "bar" },
@@ -14,18 +16,24 @@ export const ArchiveModal = ({
 }: {
   onClose: () => void;
 }): JSX.Element | null => {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedChartType, setSelectedChartType] = useState<ChartType>("both");
 
-  const chartTypeOptions = useMemo(() => options, []);
+  const { mutateAsync: generateArchive, isPending } = useGenerateArchive();
 
-  const handleCategoryToggle = (category: string) => {
+  const handleCategoryToggle = (category: Category) => {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
+
+  const handleClick = async () =>
+    await generateArchive({
+      categories: selectedCategories,
+      chartType: selectedChartType,
+    });
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -55,7 +63,9 @@ export const ArchiveModal = ({
                         onChange={() => handleCategoryToggle(category)}
                         className="h-4 w-4"
                       />
-                      <span className="text-base">{category}</span>
+                      <span className="text-base">
+                        {capitalize(removeUnderlines(category))}
+                      </span>
                     </label>
                   </li>
                 ))}
@@ -66,7 +76,7 @@ export const ArchiveModal = ({
           <div>
             <h3 className="text-sm font-medium mb-4">Chart type</h3>
             <div className="space-y-4">
-              {chartTypeOptions.map((option) => (
+              {options.map((option) => (
                 <label
                   key={`chart-type-${option.value}-el`}
                   className="flex items-center gap-3 cursor-pointer"
@@ -87,12 +97,11 @@ export const ArchiveModal = ({
         </div>
         <div className="px-6 py-4 border-t flex items-center justify-end">
           <button
-            className="bg-black text-white font-semibold px-4 py-2 rounded-md hover:opacity-90"
-            onClick={() => {
-              /* intentionally empty for now */
-            }}
+            className="bg-black text-white font-semibold px-4 py-2 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleClick}
+            disabled={!selectedCategories.length || !selectedChartType}
           >
-            Export
+            {isPending ? "Exporting..." : "Export"}
           </button>
         </div>
       </div>

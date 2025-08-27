@@ -9,12 +9,13 @@ import {
 import { API_URL } from "src/utils/constants";
 import {
   PDF_DELETE_DOCUMENT_KEY,
+  PDF_EXPORT_ARCHIVE_KEY,
   PDF_GENERATE_DOCUMENT_KEY,
   PDF_GET_DOCUMENT_KEY,
   PDF_GET_DOCUMENTS_KEY,
   PDF_MUTATION_KEY,
 } from "./constants";
-import { Category, Chart } from "src/types";
+import { Category, Chart, ChartType } from "src/types";
 import { isChart, isChartArray } from "src/utils/guards";
 
 const generatePdf = async ({
@@ -82,6 +83,37 @@ const deleteDocument = async (key: string): Promise<void> => {
 
   if (!response.ok)
     throw new Error(`Error deleting document: ${response.status}`);
+};
+
+const generateArchive = async (
+  categories: Category[],
+  chartType: ChartType
+): Promise<void> => {
+  const response = await fetch(`${API_URL}/pdf/generate-archive`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ categories, chartType }),
+  });
+
+  if (!response.ok)
+    throw new Error(`Error generating archive: ${response.status}`);
+
+  const blob = await response.blob();
+
+  if (!blob.size) return;
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `archive.zip`;
+  document.body.appendChild(link);
+  link.click();
+
+  link.remove();
+  URL.revokeObjectURL(url);
 };
 
 export const useGeneratePdf = (): UseMutationResult<
@@ -188,3 +220,15 @@ export const useDeleteDocument = (): UseMutationResult<
     },
   });
 };
+
+export const useGenerateArchive = (): UseMutationResult<
+  void,
+  Error,
+  { categories: Category[]; chartType: ChartType },
+  unknown
+> =>
+  useMutation({
+    mutationKey: [PDF_MUTATION_KEY, PDF_EXPORT_ARCHIVE_KEY],
+    mutationFn: ({ categories, chartType }) =>
+      generateArchive(categories, chartType),
+  });
