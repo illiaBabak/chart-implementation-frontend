@@ -33,3 +33,15 @@ export type Chart = {
 };
 
 export type ChartType = "bar" | "pie" | "both";
+
+export type Language =
+  | "en"
+  | "uk"
+  | "es"
+  | "fr"
+  | "de"
+  | "it"
+  | "pt"
+  | "zh"
+  | "ja"
+  | "ko";

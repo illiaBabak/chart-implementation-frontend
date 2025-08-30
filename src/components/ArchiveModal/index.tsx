@@ -1,9 +1,10 @@
 import { JSX, useState } from "react";
 import { useGenerateArchive } from "src/api/pdf";
-import { Category, ChartType } from "src/types";
+import { Category, ChartType, Language } from "src/types";
 import { capitalize } from "src/utils/capitalize";
 import { CATEGORIES } from "src/utils/constants";
 import { removeUnderlines } from "src/utils/removeUnderlines";
+import { LanguageDropdown } from "src/components/LanguageDropdown";
 
 const options: { label: string; value: ChartType }[] = [
   { label: "Bar chart", value: "bar" },
@@ -18,6 +19,7 @@ export const ArchiveModal = ({
 }): JSX.Element | null => {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedChartType, setSelectedChartType] = useState<ChartType>("both");
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>("en");
 
   const { mutateAsync: generateArchive, isPending } = useGenerateArchive();
 
@@ -38,7 +40,7 @@ export const ArchiveModal = ({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold">Export archive</h2>
           <button
@@ -49,7 +51,7 @@ export const ArchiveModal = ({
             ✕
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8">
           <div>
             <h3 className="text-sm font-medium mb-4">Categories</h3>
             <div className="max-h-80 overflow-auto pr-2">
@@ -93,6 +95,14 @@ export const ArchiveModal = ({
                 </label>
               ))}
             </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-4">Language</h3>
+            <LanguageDropdown
+              selectedLanguage={selectedLanguage}
+              setSelectedLanguage={setSelectedLanguage}
+            />
           </div>
         </div>
         <div className="px-6 py-4 border-t flex items-center justify-end">
