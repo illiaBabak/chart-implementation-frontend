@@ -15,7 +15,7 @@ import {
   PDF_GET_DOCUMENTS_KEY,
   PDF_MUTATION_KEY,
 } from "./constants";
-import { Category, Chart, ChartType } from "src/types";
+import { Category, Chart, ChartType, Language } from "src/types";
 import { isChart, isChartArray } from "src/utils/guards";
 
 const generatePdf = async ({
@@ -87,14 +87,15 @@ const deleteDocument = async (key: string): Promise<void> => {
 
 const generateArchive = async (
   categories: Category[],
-  chartType: ChartType
+  chartType: ChartType,
+  language: Language
 ): Promise<void> => {
   const response = await fetch(`${API_URL}/pdf/generate-archive`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ categories, chartType }),
+    body: JSON.stringify({ categories, chartType, language }),
   });
 
   if (!response.ok)
@@ -224,11 +225,11 @@ export const useDeleteDocument = (): UseMutationResult<
 export const useGenerateArchive = (): UseMutationResult<
   void,
   Error,
-  { categories: Category[]; chartType: ChartType },
+  { categories: Category[]; chartType: ChartType; language: Language },
   unknown
 > =>
   useMutation({
     mutationKey: [PDF_MUTATION_KEY, PDF_EXPORT_ARCHIVE_KEY],
-    mutationFn: ({ categories, chartType }) =>
-      generateArchive(categories, chartType),
+    mutationFn: ({ categories, chartType, language }) =>
+      generateArchive(categories, chartType, language),
   });

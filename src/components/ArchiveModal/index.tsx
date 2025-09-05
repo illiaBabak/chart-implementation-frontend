@@ -19,7 +19,7 @@ export const ArchiveModal = ({
 }): JSX.Element | null => {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedChartType, setSelectedChartType] = useState<ChartType>("both");
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>("en");
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>("English");
 
   const { mutateAsync: generateArchive, isPending } = useGenerateArchive();
 
@@ -35,6 +35,7 @@ export const ArchiveModal = ({
     await generateArchive({
       categories: selectedCategories,
       chartType: selectedChartType,
+      language: selectedLanguage,
     }).then(() => onClose());
 
   return (

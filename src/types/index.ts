@@ -35,13 +35,13 @@ export type Chart = {
 export type ChartType = "bar" | "pie" | "both";
 
 export type Language =
-  | "en"
-  | "uk"
-  | "es"
-  | "fr"
-  | "de"
-  | "it"
-  | "pt"
-  | "zh"
-  | "ja"
-  | "ko";
+  | "English"
+  | "Українська"
+  | "Español"
+  | "Français"
+  | "Deutsch"
+  | "Italiano"
+  | "Português"
+  | "中文"
+  | "日本語"
+  | "한국어";

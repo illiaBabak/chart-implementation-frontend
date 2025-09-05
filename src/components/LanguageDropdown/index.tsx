@@ -3,17 +3,17 @@ import ClickAwayListener from "react-click-away-listener";
 import { motion, AnimatePresence } from "motion/react";
 import { Language } from "src/types";
 
-const LANGUAGE_OPTIONS = [
-  { label: "English", value: "en", flag: "🇺🇸" },
-  { label: "Українська", value: "uk", flag: "🇺🇦" },
-  { label: "Español", value: "es", flag: "🇪🇸" },
-  { label: "Français", value: "fr", flag: "🇫🇷" },
-  { label: "Deutsch", value: "de", flag: "🇩🇪" },
-  { label: "Italiano", value: "it", flag: "🇮🇹" },
-  { label: "Português", value: "pt", flag: "🇵🇹" },
-  { label: "中文", value: "zh", flag: "🇨🇳" },
-  { label: "日本語", value: "ja", flag: "🇯🇵" },
-  { label: "한국어", value: "ko", flag: "🇰🇷" },
+const LANGUAGE_OPTIONS: { label: Language; flag: string }[] = [
+  { label: "English", flag: "🇺🇸" },
+  { label: "Українська", flag: "🇺🇦" },
+  { label: "Español", flag: "🇪🇸" },
+  { label: "Français", flag: "🇫🇷" },
+  { label: "Deutsch", flag: "🇩🇪" },
+  { label: "Italiano", flag: "🇮🇹" },
+  { label: "Português", flag: "🇵🇹" },
+  { label: "中文", flag: "🇨🇳" },
+  { label: "日本語", flag: "🇯🇵" },
+  { label: "한국어", flag: "🇰🇷" },
 ];
 
 type Props = {
@@ -28,7 +28,7 @@ export const LanguageDropdown = ({
   const [isFocusedDropdown, setIsFocusedDropdown] = useState(false);
 
   const selectedLanguageOption =
-    LANGUAGE_OPTIONS.find((option) => option.value === selectedLanguage) ||
+    LANGUAGE_OPTIONS.find((option) => option.label === selectedLanguage) ||
     LANGUAGE_OPTIONS[0];
 
   return (
@@ -76,13 +76,13 @@ export const LanguageDropdown = ({
             >
               {LANGUAGE_OPTIONS.map((option, index) => (
                 <div
-                  data-testid={`language-option-${option.value}`}
-                  key={`language-${option.value}-${index}`}
+                  data-testid={`language-option-${option.label}`}
+                  key={`language-${option.label}-${index}`}
                   className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
-                    selectedLanguage === option.value ? "bg-blue-100" : ""
+                    selectedLanguage === option.label ? "bg-blue-100" : ""
                   }`}
                   onClick={() => {
-                    setSelectedLanguage(option.value as Language);
+                    setSelectedLanguage(option.label);
                     setIsFocusedDropdown(false);
                   }}
                 >
@@ -90,7 +90,7 @@ export const LanguageDropdown = ({
                   <span className="text-base font-medium text-gray-700">
                     {option.label}
                   </span>
-                  {selectedLanguage === option.value && (
+                  {selectedLanguage === option.label && (
                     <span className="ml-auto text-blue-600">✓</span>
                   )}
                 </div>
