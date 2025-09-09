@@ -2,11 +2,15 @@ import { JSX, useState } from "react";
 import { useGenerateArchive } from "src/api/pdf";
 import { Category, ChartType, Language } from "src/types";
 import { capitalize } from "src/utils/capitalize";
-import { CATEGORIES } from "src/utils/constants";
+import { CATEGORIES, LANGUAGE_OPTIONS } from "src/utils/constants";
 import { removeUnderlines } from "src/utils/removeUnderlines";
-import { LanguageDropdown } from "src/components/LanguageDropdown";
+import { Dropdown } from "src/components/Dropdown";
 
-const options: { label: string; value: ChartType }[] = [
+const DEFAULT_LANGUAGE = "English";
+
+const DEFAULT_CHART_TYPE = "both";
+
+const CHART_TYPE_OPTIONS: { label: string; value: ChartType }[] = [
   { label: "Bar chart", value: "bar" },
   { label: "Pie chart", value: "pie" },
   { label: "Both", value: "both" },
@@ -18,8 +22,10 @@ export const ArchiveModal = ({
   onClose: () => void;
 }): JSX.Element | null => {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
-  const [selectedChartType, setSelectedChartType] = useState<ChartType>("both");
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>("English");
+  const [selectedChartType, setSelectedChartType] =
+    useState<ChartType>(DEFAULT_CHART_TYPE);
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<Language>(DEFAULT_LANGUAGE);
 
   const { mutateAsync: generateArchive, isPending } = useGenerateArchive();
 
@@ -31,12 +37,24 @@ export const ArchiveModal = ({
     );
   };
 
-  const handleClick = async () =>
-    await generateArchive({
+  const handleClick = async () => {
+    const blob = await generateArchive({
       categories: selectedCategories,
       chartType: selectedChartType,
       language: selectedLanguage,
-    }).then(() => onClose());
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `archive.zip`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -46,7 +64,7 @@ export const ArchiveModal = ({
           <h2 className="text-lg font-semibold">Export archive</h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close archive modal"
             className="text-gray-500 hover:text-black cursor-pointer"
           >
             ✕
@@ -79,7 +97,7 @@ export const ArchiveModal = ({
           <div>
             <h3 className="text-sm font-medium mb-4">Chart type</h3>
             <div className="space-y-4">
-              {options.map((option) => (
+              {CHART_TYPE_OPTIONS.map((option) => (
                 <label
                   key={`chart-type-${option.value}-el`}
                   className="flex items-center gap-3 cursor-pointer"
@@ -100,9 +118,17 @@ export const ArchiveModal = ({
 
           <div>
             <h3 className="text-sm font-medium mb-4">Language</h3>
-            <LanguageDropdown
-              selectedLanguage={selectedLanguage}
-              setSelectedLanguage={setSelectedLanguage}
+            <Dropdown
+              options={LANGUAGE_OPTIONS.map((el) => el.label)}
+              optionsDisplay={LANGUAGE_OPTIONS.reduce(
+                (acc: Record<string, string>, language) => {
+                  acc[language.label] = `${language.flag} ${language.label}`;
+                  return acc;
+                },
+                {}
+              )}
+              selectedOption={selectedLanguage}
+              setSelectedOption={setSelectedLanguage}
             />
           </div>
         </div>

@@ -1,50 +1,35 @@
 import { Dispatch, JSX, SetStateAction, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { motion, AnimatePresence } from "motion/react";
-import { Language } from "src/types";
 
-const LANGUAGE_OPTIONS: { label: Language; flag: string }[] = [
-  { label: "English", flag: "🇺🇸" },
-  { label: "Українська", flag: "🇺🇦" },
-  { label: "Español", flag: "🇪🇸" },
-  { label: "Français", flag: "🇫🇷" },
-  { label: "Deutsch", flag: "🇩🇪" },
-  { label: "Italiano", flag: "🇮🇹" },
-  { label: "Português", flag: "🇵🇹" },
-  { label: "中文", flag: "🇨🇳" },
-  { label: "日本語", flag: "🇯🇵" },
-  { label: "한국어", flag: "🇰🇷" },
-];
-
-type Props = {
-  selectedLanguage: Language;
-  setSelectedLanguage: Dispatch<SetStateAction<Language>>;
+type Props<T extends string> = {
+  options: T[];
+  selectedOption: T;
+  setSelectedOption: Dispatch<SetStateAction<T>>;
+  optionsDisplay?: Record<T, string>;
 };
 
-export const LanguageDropdown = ({
-  selectedLanguage,
-  setSelectedLanguage,
-}: Props): JSX.Element => {
+export const Dropdown = <T extends string>({
+  options,
+  optionsDisplay,
+  selectedOption,
+  setSelectedOption,
+}: Props<T>): JSX.Element => {
   const [isFocusedDropdown, setIsFocusedDropdown] = useState(false);
-
-  const selectedLanguageOption =
-    LANGUAGE_OPTIONS.find((option) => option.label === selectedLanguage) ||
-    LANGUAGE_OPTIONS[0];
 
   return (
     <ClickAwayListener onClickAway={() => setIsFocusedDropdown(false)}>
       <div className="relative">
         <div
-          data-testid="language-dropdown"
+          data-testid="dropdown"
           onClick={() => setIsFocusedDropdown((prev) => !prev)}
           className={`cursor-pointer bg-white min-w-[200px] max-w-[200px] h-[45px] rounded-sm border border-gray-300 flex items-center justify-between px-3 hover:border-blue-400 transition-colors ${
             isFocusedDropdown ? "border-blue-500 ring-2 ring-blue-200" : ""
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">{selectedLanguageOption.flag}</span>
             <span className="text-base font-medium text-gray-700">
-              {selectedLanguageOption.label}
+              {optionsDisplay?.[selectedOption] ?? selectedOption}
             </span>
           </div>
           <motion.img
@@ -74,23 +59,22 @@ export const LanguageDropdown = ({
               }}
               className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-sm shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
             >
-              {LANGUAGE_OPTIONS.map((option, index) => (
+              {options.map((option, index) => (
                 <div
-                  data-testid={`language-option-${option.label}`}
-                  key={`language-${option.label}-${index}`}
+                  data-testid={`option-${option}`}
+                  key={`option-${option}-${index}`}
                   className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
-                    selectedLanguage === option.label ? "bg-blue-100" : ""
+                    selectedOption === option ? "bg-blue-100" : ""
                   }`}
                   onClick={() => {
-                    setSelectedLanguage(option.label);
+                    setSelectedOption(option);
                     setIsFocusedDropdown(false);
                   }}
                 >
-                  <span className="text-lg">{option.flag}</span>
                   <span className="text-base font-medium text-gray-700">
-                    {option.label}
+                    {optionsDisplay?.[option] ?? option}
                   </span>
-                  {selectedLanguage === option.label && (
+                  {selectedOption === option && (
                     <span className="ml-auto text-blue-600">✓</span>
                   )}
                 </div>

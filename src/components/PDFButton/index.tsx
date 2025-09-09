@@ -11,7 +11,7 @@ type Props = {
 };
 
 export const PDFButton = ({ selectedCategory }: Props) => {
-  const { setShouldShowMenu } = useContext(GlobalContext);
+  const { setShouldShowDocumentsList } = useContext(GlobalContext);
 
   const queryClient = useQueryClient();
 
@@ -27,7 +27,7 @@ export const PDFButton = ({ selectedCategory }: Props) => {
   });
 
   useEffect(() => {
-    if (data && (data?.status === "success" || data?.status === "error")) {
+    if (data && data.status !== "new") {
       queryClient.invalidateQueries({
         queryKey: [PDF_GET_DOCUMENTS_KEY, data?.chart_type],
       });
@@ -39,10 +39,21 @@ export const PDFButton = ({ selectedCategory }: Props) => {
   const isDisabled = !!newDocument;
 
   const handleClick = async () => {
-    await generatePdf({ chartType: selectedCategory, key: uuidv4() });
+    const blob = await generatePdf({
+      chartType: selectedCategory,
+      key: uuidv4(),
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${selectedCategory}-v1.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
 
-    if (!!documents?.length && documents.length >= 1) setShouldShowMenu(true);
-    else setShouldShowMenu(false);
+    if (!!documents?.length && documents.length >= 1)
+      setShouldShowDocumentsList(true);
   };
 
   return (

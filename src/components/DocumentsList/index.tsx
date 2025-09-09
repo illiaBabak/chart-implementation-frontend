@@ -6,7 +6,7 @@ type Props = {
   selectedCategory: Category;
 };
 
-export const Menu = ({ onClose, selectedCategory }: Props) => {
+export const DocumentsList = ({ onClose, selectedCategory }: Props) => {
   const { data: documents } = useGetDocuments(selectedCategory);
 
   const { mutateAsync: deleteDocument } = useDeleteDocument();
@@ -24,6 +24,7 @@ export const Menu = ({ onClose, selectedCategory }: Props) => {
     document.body.appendChild(link);
     link.click();
     link.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (

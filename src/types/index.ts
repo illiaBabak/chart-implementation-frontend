@@ -1,6 +1,10 @@
-import { CATEGORIES } from "src/utils/constants";
-
-export type Category = (typeof CATEGORIES)[number];
+export type Category =
+  | "age"
+  | "gender"
+  | "workplace"
+  | "industry"
+  | "location"
+  | "birth_date";
 
 export type User = {
   id: number;

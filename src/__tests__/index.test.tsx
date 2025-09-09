@@ -1,10 +1,13 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { DropdownMenu } from "../components/DropdownMenu";
 import { BarChart } from "../components/BarChart";
 import { PieChart } from "../components/PieChart";
 import { useState } from "react";
 import { Category, ChartItem } from "src/types";
+import { Dropdown } from "src/components/Dropdown";
+import { CATEGORIES } from "src/utils/constants";
+import { removeUnderlines } from "src/utils/removeUnderlines";
+import { capitalize } from "src/utils/capitalize";
 
 const mockChartData: ChartItem[] = [
   { label: "18-25", percentage: 30, color: "#3B82F6", step: 15 },
@@ -19,9 +22,17 @@ describe("DropdownMenu", () => {
       const [selectedCategory, setSelectedCategory] = useState<Category>("age");
 
       return (
-        <DropdownMenu
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
+        <Dropdown
+          options={CATEGORIES}
+          optionsDisplay={CATEGORIES.reduce(
+            (acc: Record<string, string>, category) => {
+              acc[category] = capitalize(removeUnderlines(category));
+              return acc;
+            },
+            {}
+          )}
+          selectedOption={selectedCategory}
+          setSelectedOption={setSelectedCategory}
         />
       );
     };

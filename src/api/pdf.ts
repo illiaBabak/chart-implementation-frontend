@@ -24,7 +24,7 @@ const generatePdf = async ({
 }: {
   chartType: Category;
   key: string;
-}): Promise<void> => {
+}): Promise<Blob> => {
   const response = await fetch(`${API_URL}/pdf/generate-document`, {
     method: "POST",
     headers: {
@@ -40,18 +40,9 @@ const generatePdf = async ({
 
   const blob = await response.blob();
 
-  if (!blob.size) return;
+  if (!blob.size) throw new Error(`Error blob: ${response.status}`);
 
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${chartType}-v1.pdf`;
-  document.body.appendChild(link);
-  link.click();
-
-  link.remove();
-  URL.revokeObjectURL(url);
+  return blob;
 };
 
 const getDocuments = async (chartType: Category): Promise<Chart[]> => {
@@ -89,7 +80,7 @@ const generateArchive = async (
   categories: Category[],
   chartType: ChartType,
   language: Language
-): Promise<void> => {
+): Promise<Blob> => {
   const response = await fetch(`${API_URL}/pdf/generate-archive`, {
     method: "POST",
     headers: {
@@ -103,22 +94,13 @@ const generateArchive = async (
 
   const blob = await response.blob();
 
-  if (!blob.size) return;
+  if (!blob.size) throw new Error(`Error blob: ${response.status}`);
 
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `archive.zip`;
-  document.body.appendChild(link);
-  link.click();
-
-  link.remove();
-  URL.revokeObjectURL(url);
+  return blob;
 };
 
 export const useGeneratePdf = (): UseMutationResult<
-  void,
+  Blob,
   Error,
   {
     chartType: Category;
@@ -160,6 +142,14 @@ export const useGeneratePdf = (): UseMutationResult<
             },
           ];
         }
+      );
+
+      return { prevQueryData };
+    },
+    onError: async (_, { chartType }, context) => {
+      queryClient.setQueryData(
+        [PDF_GET_DOCUMENTS_KEY, chartType],
+        (prev: Chart[]) => context?.prevQueryData ?? prev
       );
     },
   });
@@ -213,17 +203,25 @@ export const useDeleteDocument = (): UseMutationResult<
         [PDF_GET_DOCUMENTS_KEY, chartType],
         newQueryData
       );
+
+      return { prevQueryData };
     },
     onSettled: async (_, __, { chartType }) => {
       queryClient.invalidateQueries({
         queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
       });
     },
+    onError: async (_, { chartType }, context) => {
+      queryClient.setQueryData(
+        [PDF_GET_DOCUMENTS_KEY, chartType],
+        (prev: Chart[]) => context?.prevQueryData ?? prev
+      );
+    },
   });
 };
 
 export const useGenerateArchive = (): UseMutationResult<
-  void,
+  Blob,
   Error,
   { categories: Category[]; chartType: ChartType; language: Language },
   unknown
