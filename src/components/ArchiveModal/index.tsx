@@ -24,8 +24,10 @@ export const ArchiveModal = ({
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedChartType, setSelectedChartType] =
     useState<ChartType>(DEFAULT_CHART_TYPE);
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<Language>(DEFAULT_LANGUAGE);
+  const [selectedLanguage, setSelectedLanguage] = useState<{
+    label: Language;
+    labelToShow: string;
+  }>(LANGUAGE_OPTIONS.find((el) => el.label === DEFAULT_LANGUAGE)!);
 
   const { mutateAsync: generateArchive, isPending } = useGenerateArchive();
 
@@ -41,7 +43,7 @@ export const ArchiveModal = ({
     const blob = await generateArchive({
       categories: selectedCategories,
       chartType: selectedChartType,
-      language: selectedLanguage,
+      language: selectedLanguage.label,
     });
 
     const url = URL.createObjectURL(blob);
@@ -119,16 +121,13 @@ export const ArchiveModal = ({
           <div>
             <h3 className="text-sm font-medium mb-4">Language</h3>
             <Dropdown
-              options={LANGUAGE_OPTIONS.map((el) => el.label)}
-              optionsDisplay={LANGUAGE_OPTIONS.reduce(
-                (acc: Record<string, string>, language) => {
-                  acc[language.label] = `${language.flag} ${language.label}`;
-                  return acc;
-                },
-                {}
-              )}
-              selectedOption={selectedLanguage}
-              onOptionSelect={setSelectedLanguage}
+              options={LANGUAGE_OPTIONS.map((el) => el.labelToShow)}
+              selectedOption={selectedLanguage.labelToShow}
+              onOptionSelect={(language) =>
+                setSelectedLanguage(
+                  LANGUAGE_OPTIONS.find((el) => el.labelToShow === language)!
+                )
+              }
             />
           </div>
         </div>

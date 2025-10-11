@@ -9,17 +9,17 @@ export const CATEGORIES: Category[] = [
   "birth_date",
 ];
 
-export const LANGUAGE_OPTIONS: { label: Language; flag: string }[] = [
-  { label: "English", flag: "🇺🇸" },
-  { label: "Українська", flag: "🇺🇦" },
-  { label: "Español", flag: "🇪🇸" },
-  { label: "Français", flag: "🇫🇷" },
-  { label: "Deutsch", flag: "🇩🇪" },
-  { label: "Italiano", flag: "🇮🇹" },
-  { label: "Português", flag: "🇵🇹" },
-  { label: "中文", flag: "🇨🇳" },
-  { label: "日本語", flag: "🇯🇵" },
-  { label: "한국어", flag: "🇰🇷" },
+export const LANGUAGE_OPTIONS: { label: Language; labelToShow: string }[] = [
+  { label: "English", labelToShow: "🇺🇸 English" },
+  { label: "Українська", labelToShow: "🇺🇦 Українська" },
+  { label: "Español", labelToShow: "🇪🇸 Español" },
+  { label: "Français", labelToShow: "🇫🇷 Français" },
+  { label: "Deutsch", labelToShow: "🇩🇪 Deutsch" },
+  { label: "Italiano", labelToShow: "🇮🇹 Italiano" },
+  { label: "Português", labelToShow: "🇵🇹 Português" },
+  { label: "中文", labelToShow: "🇨🇳 中文" },
+  { label: "日本語", labelToShow: "🇯🇵 日本語" },
+  { label: "한국어", labelToShow: "🇰🇷 한국어" },
 ];
 
 export const API_URL = "http://localhost:3001/api";

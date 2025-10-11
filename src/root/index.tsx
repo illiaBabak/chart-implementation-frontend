@@ -11,12 +11,12 @@ import { createCSV } from "src/utils/createCSV";
 import { ArchiveModal } from "src/components/ArchiveModal";
 import { Dropdown } from "src/components/Dropdown";
 import { CATEGORIES } from "src/utils/constants";
-import { removeUnderlines } from "src/utils/removeUnderlines";
-import { capitalize } from "src/utils/capitalize";
 import { GlobalProvider } from "src/context/providers";
 import { Routes, Route } from "react-router-dom";
 import { Category } from "src/types";
 import { useUrlParams } from "src/hooks/useUrlParams";
+import { capitalize } from "src/utils/capitalize";
+import { removeUnderlines } from "src/utils/removeUnderlines";
 
 const DEFAULT_CATEGORY = "age";
 
@@ -91,19 +91,16 @@ export const App = (): JSX.Element => {
             <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
               <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
                 <Dropdown
-                  options={CATEGORIES}
-                  selectedOption={selectedCategory}
+                  options={CATEGORIES.map((category) =>
+                    capitalize(removeUnderlines(category))
+                  )}
+                  selectedOption={capitalize(
+                    removeUnderlines(selectedCategory)
+                  )}
                   onOptionSelect={(category) => {
                     setShouldShowDocumentsList(false);
                     setParam("chartType", category as Category);
                   }}
-                  optionsDisplay={CATEGORIES.reduce(
-                    (acc: Record<string, string>, category) => {
-                      acc[category] = capitalize(removeUnderlines(category));
-                      return acc;
-                    },
-                    {}
-                  )}
                 />
                 <div className="flex flex-row items-center gap-4">
                   <button

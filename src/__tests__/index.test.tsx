@@ -6,8 +6,6 @@ import { useState } from "react";
 import { Category, ChartItem } from "src/types";
 import { Dropdown } from "src/components/Dropdown";
 import { CATEGORIES } from "src/utils/constants";
-import { removeUnderlines } from "src/utils/removeUnderlines";
-import { capitalize } from "src/utils/capitalize";
 
 const mockChartData: ChartItem[] = [
   { label: "18-25", percentage: 30, color: "#3B82F6", step: 15 },
@@ -24,13 +22,6 @@ describe("DropdownMenu", () => {
       return (
         <Dropdown
           options={CATEGORIES}
-          optionsDisplay={CATEGORIES.reduce(
-            (acc: Record<string, string>, category) => {
-              acc[category] = capitalize(removeUnderlines(category));
-              return acc;
-            },
-            {}
-          )}
           selectedOption={selectedCategory}
           onOptionSelect={setSelectedCategory}
         />
