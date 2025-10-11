@@ -32,7 +32,7 @@ describe("DropdownMenu", () => {
             {}
           )}
           selectedOption={selectedCategory}
-          setSelectedOption={setSelectedCategory}
+          onOptionSelect={setSelectedCategory}
         />
       );
     };

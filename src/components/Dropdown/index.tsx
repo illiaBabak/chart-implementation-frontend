@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 type Props<T extends string> = {
   options: T[];
   selectedOption: T;
-  setSelectedOption: Dispatch<SetStateAction<T>>;
+  onOptionSelect: Dispatch<SetStateAction<T>>;
   optionsDisplay?: Record<T, string>;
 };
 
@@ -13,7 +13,7 @@ export const Dropdown = <T extends string>({
   options,
   optionsDisplay,
   selectedOption,
-  setSelectedOption,
+  onOptionSelect,
 }: Props<T>): JSX.Element => {
   const [isFocusedDropdown, setIsFocusedDropdown] = useState(false);
 
@@ -67,7 +67,7 @@ export const Dropdown = <T extends string>({
                     selectedOption === option ? "bg-blue-100" : ""
                   }`}
                   onClick={() => {
-                    setSelectedOption(option);
+                    onOptionSelect(option);
                     setIsFocusedDropdown(false);
                   }}
                 >

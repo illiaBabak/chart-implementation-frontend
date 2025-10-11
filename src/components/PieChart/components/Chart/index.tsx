@@ -13,8 +13,6 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
 
   const offset = useRef(0);
 
-  offset.current = 0;
-
   return (
     <Tooltip content={hoveredSectionText}>
       <svg
@@ -26,7 +24,9 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
         {dataToDisplay.map((segment, index) => {
           const dash = (segment.percentage / 100) * CIRCUMFERENCE;
           const dashOffset = offset.current;
-          offset.current += dash;
+
+          if (index === dataToDisplay.length - 1) offset.current = 0;
+          else offset.current += dash;
 
           return (
             <circle

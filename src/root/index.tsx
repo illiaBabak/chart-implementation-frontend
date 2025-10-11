@@ -1,10 +1,9 @@
-import { createContext, JSX, useEffect, useMemo, useState } from "react";
+import { JSX, useMemo, useState, useEffect } from "react";
 import { PieChart } from "src/components/PieChart";
 import { BarChart } from "src/components/BarChart";
-import { Category } from "src/types";
 import { useGetUsersQuery } from "src/api/users";
 import { Loader } from "src/components/Loader";
-import { isDate } from "src/utils/guards";
+import { isCategory, isDate } from "src/utils/guards";
 import { generateRandomColor } from "src/utils/generateRandomColor";
 import { PDFButton } from "src/components/PDFButton";
 import { DocumentsList } from "src/components/DocumentsList";
@@ -14,20 +13,21 @@ import { Dropdown } from "src/components/Dropdown";
 import { CATEGORIES } from "src/utils/constants";
 import { removeUnderlines } from "src/utils/removeUnderlines";
 import { capitalize } from "src/utils/capitalize";
+import { GlobalProvider } from "src/context/providers";
+import { Routes, Route } from "react-router-dom";
+import { Category } from "src/types";
+import { useUrlParams } from "src/hooks/useUrlParams";
 
 const DEFAULT_CATEGORY = "age";
 
-export const GlobalContext = createContext<{
-  setShouldShowDocumentsList: (shouldShowDocumentsList: boolean) => void;
-}>({
-  setShouldShowDocumentsList: () => {
-    throw new Error("GlobalContext is not initialized");
-  },
-});
-
 export const App = (): JSX.Element => {
-  const [selectedCategory, setSelectedCategory] =
-    useState<Category>(DEFAULT_CATEGORY);
+  const { getParam, setParam } = useUrlParams();
+
+  const selectedCategory = getParam("chartType") ?? "";
+
+  useEffect(() => {
+    if (!selectedCategory) setParam("chartType", DEFAULT_CATEGORY);
+  }, [selectedCategory, setParam]);
 
   const [shouldShowDocumentsList, setShouldShowDocumentsList] = useState(false);
   const [shouldShowArchiveModal, setShouldShowArchiveModal] = useState(false);
@@ -39,28 +39,35 @@ export const App = (): JSX.Element => {
 
     const totalUsers = users.length;
 
-    const countMap = users.reduce((acc: Record<string, number>, user) => {
-      const key = isDate(user[selectedCategory])
-        ? new Date(user[selectedCategory]).getFullYear().toString()
-        : user[selectedCategory].toString();
+    const usersCountByCategory = users.reduce(
+      (acc: Record<string, number>, user) => {
+        const category = isCategory(selectedCategory)
+          ? selectedCategory
+          : DEFAULT_CATEGORY;
 
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+        const userField = user[category];
 
-    const maxPercentage = Math.max(...Object.values(countMap));
+        const isUserFieldDate = isDate(userField);
 
-    return Object.entries(countMap).map(([key, count]) => ({
+        const yearFromDate = new Date(userField).getFullYear().toString();
+
+        const key = isUserFieldDate ? yearFromDate : userField.toString();
+
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
+
+    const maxPercentage = Math.max(...Object.values(usersCountByCategory));
+
+    return Object.entries(usersCountByCategory).map(([key, count]) => ({
       label: key,
       percentage: Number(((count / totalUsers) * 100).toFixed(1)),
       color: generateRandomColor(),
       step: (maxPercentage * 2) / 5,
     }));
   }, [users, selectedCategory]);
-
-  useEffect(() => {
-    setShouldShowDocumentsList(false);
-  }, [selectedCategory]);
 
   const handleDownloadCSV = () => {
     const csv = createCSV(dataToDisplayInChart);
@@ -76,53 +83,75 @@ export const App = (): JSX.Element => {
   };
 
   return (
-    <GlobalContext.Provider value={{ setShouldShowDocumentsList }}>
-      <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
-        <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
-          <Dropdown
-            options={CATEGORIES}
-            selectedOption={selectedCategory}
-            setSelectedOption={setSelectedCategory}
-            optionsDisplay={CATEGORIES.reduce(
-              (acc: Record<string, string>, category) => {
-                acc[category] = capitalize(removeUnderlines(category));
-                return acc;
-              },
-              {}
-            )}
-          />
-          <div className="flex flex-row items-center gap-4">
-            <button
-              onClick={handleDownloadCSV}
-              className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
-            >
-              Export to CSV
-            </button>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <GlobalProvider value={{ setShouldShowDocumentsList }}>
+            <div className="flex flex-col bg-gray-200 w-screen min-h-screen items-center xl:items-start xl:h-screen p-8 relative">
+              <div className="flex flex-col gap-4 md:flex-row items-center justify-between w-full">
+                <Dropdown
+                  options={CATEGORIES}
+                  selectedOption={selectedCategory}
+                  onOptionSelect={(category) => {
+                    setShouldShowDocumentsList(false);
+                    setParam("chartType", category as Category);
+                  }}
+                  optionsDisplay={CATEGORIES.reduce(
+                    (acc: Record<string, string>, category) => {
+                      acc[category] = capitalize(removeUnderlines(category));
+                      return acc;
+                    },
+                    {}
+                  )}
+                />
+                <div className="flex flex-row items-center gap-4">
+                  <button
+                    onClick={handleDownloadCSV}
+                    className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
+                  >
+                    Export to CSV
+                  </button>
 
-            <PDFButton selectedCategory={selectedCategory} />
-            <button
-              onClick={() => setShouldShowArchiveModal(true)}
-              className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
-            >
-              Export to archive
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
-          <PieChart dataToDisplay={dataToDisplayInChart} />
-          <BarChart dataToDisplay={dataToDisplayInChart} />
-        </div>
-        {shouldShowDocumentsList && (
-          <DocumentsList
-            onClose={() => setShouldShowDocumentsList(false)}
-            selectedCategory={selectedCategory}
-          />
-        )}
-        {shouldShowArchiveModal && (
-          <ArchiveModal onClose={() => setShouldShowArchiveModal(false)} />
-        )}
-        {isLoading && <Loader />}
-      </div>
-    </GlobalContext.Provider>
+                  <PDFButton
+                    selectedCategory={
+                      isCategory(selectedCategory)
+                        ? selectedCategory
+                        : DEFAULT_CATEGORY
+                    }
+                  />
+                  <button
+                    onClick={() => setShouldShowArchiveModal(true)}
+                    className="bg-white text-black font-bold hover:outline-3 hover:outline-blue-500 px-4 py-2 rounded-md cursor-pointer"
+                  >
+                    Export to archive
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col mt-12 xl:mt-0 xl:flex-row items-center justify-between w-full h-full gap-12">
+                <PieChart dataToDisplay={dataToDisplayInChart} />
+                <BarChart dataToDisplay={dataToDisplayInChart} />
+              </div>
+              {shouldShowDocumentsList && (
+                <DocumentsList
+                  onClose={() => setShouldShowDocumentsList(false)}
+                  selectedCategory={
+                    isCategory(selectedCategory)
+                      ? selectedCategory
+                      : DEFAULT_CATEGORY
+                  }
+                />
+              )}
+              {shouldShowArchiveModal && (
+                <ArchiveModal
+                  onClose={() => setShouldShowArchiveModal(false)}
+                />
+              )}
+              {isLoading && <Loader />}
+            </div>
+          </GlobalProvider>
+        }
+      />
+    </Routes>
   );
 };

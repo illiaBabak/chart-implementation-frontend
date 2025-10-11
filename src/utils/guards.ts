@@ -1,4 +1,5 @@
-import { Chart, User } from "src/types";
+import { Category, Chart, User } from "src/types";
+import { CATEGORIES } from "./constants";
 
 export const isString = (data: unknown): data is string =>
   typeof data === "string";
@@ -52,3 +53,6 @@ export const isChart = (value: unknown): value is Chart =>
 
 export const isChartArray = (value: unknown): value is Chart[] =>
   Array.isArray(value) && value.every(isChart);
+
+export const isCategory = (value: string): value is Category =>
+  CATEGORIES.includes(value as Category);

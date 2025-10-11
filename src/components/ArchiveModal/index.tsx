@@ -128,7 +128,7 @@ export const ArchiveModal = ({
                 {}
               )}
               selectedOption={selectedLanguage}
-              setSelectedOption={setSelectedLanguage}
+              onOptionSelect={setSelectedLanguage}
             />
           </div>
         </div>

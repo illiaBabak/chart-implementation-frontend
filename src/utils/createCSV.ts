@@ -7,7 +7,7 @@ export const createCSV = (
   const rows = data.map((row) =>
     headers
       .map((key) => {
-        return `"${row[key].toString().replace(/"/g, '""')}"`;
+        return `"${row[key].toString()}"`;
       })
       .join(",")
   );

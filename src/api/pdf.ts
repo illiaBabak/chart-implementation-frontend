@@ -17,6 +17,7 @@ import {
 } from "./constants";
 import { Category, Chart, ChartType, Language } from "src/types";
 import { isChart, isChartArray } from "src/utils/guards";
+import { fetchWithParams } from "src/utils/fetchWithParams";
 
 const generatePdf = async ({
   chartType,
@@ -25,7 +26,7 @@ const generatePdf = async ({
   chartType: Category;
   key: string;
 }): Promise<Blob> => {
-  const response = await fetch(`${API_URL}/pdf/generate-document`, {
+  const response = await fetchWithParams(`${API_URL}/pdf/generate-document`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -45,10 +46,8 @@ const generatePdf = async ({
   return blob;
 };
 
-const getDocuments = async (chartType: Category): Promise<Chart[]> => {
-  const response = await fetch(
-    `${API_URL}/pdf/get-documents?chartType=${chartType}`
-  );
+const getDocuments = async (): Promise<Chart[]> => {
+  const response = await fetchWithParams(`${API_URL}/pdf/get-documents`);
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
 
@@ -57,8 +56,8 @@ const getDocuments = async (chartType: Category): Promise<Chart[]> => {
   return isChartArray(data) ? data : [];
 };
 
-const getDocument = async (key: string): Promise<Chart | null> => {
-  const response = await fetch(`${API_URL}/pdf/get-document?key=${key}`);
+const getDocument = async (): Promise<Chart | null> => {
+  const response = await fetchWithParams(`${API_URL}/pdf/get-document`);
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
 
@@ -68,8 +67,9 @@ const getDocument = async (key: string): Promise<Chart | null> => {
 };
 
 const deleteDocument = async (key: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/pdf/delete-document?key=${key}`, {
+  const response = await fetchWithParams(`${API_URL}/pdf/delete-document`, {
     method: "DELETE",
+    body: JSON.stringify({ key }),
   });
 
   if (!response.ok)
@@ -81,7 +81,7 @@ const generateArchive = async (
   chartType: ChartType,
   language: Language
 ): Promise<Blob> => {
-  const response = await fetch(`${API_URL}/pdf/generate-archive`, {
+  const response = await fetchWithParams(`${API_URL}/pdf/generate-archive`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -147,20 +147,24 @@ export const useGeneratePdf = (): UseMutationResult<
       return { prevQueryData };
     },
     onError: async (_, { chartType }, context) => {
-      queryClient.setQueryData(
-        [PDF_GET_DOCUMENTS_KEY, chartType],
-        (prev: Chart[]) => context?.prevQueryData ?? prev
-      );
+      if (context?.prevQueryData) {
+        queryClient.setQueryData(
+          [PDF_GET_DOCUMENTS_KEY, chartType],
+          context?.prevQueryData
+        );
+      }
     },
   });
 };
 
 export const useGetDocuments = (
-  chartType: Category
+  chartType: Category,
+  options?: Partial<UseQueryOptions<Chart[], Error>>
 ): UseQueryResult<Chart[], Error> =>
   useQuery({
     queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
-    queryFn: () => getDocuments(chartType),
+    queryFn: getDocuments,
+    ...options,
   });
 
 export const useGetDocument = (
@@ -169,7 +173,7 @@ export const useGetDocument = (
 ): UseQueryResult<Chart | null, Error> =>
   useQuery({
     queryKey: [PDF_GET_DOCUMENT_KEY, key],
-    queryFn: () => getDocument(key),
+    queryFn: getDocument,
     ...options,
   });
 
@@ -212,10 +216,12 @@ export const useDeleteDocument = (): UseMutationResult<
       });
     },
     onError: async (_, { chartType }, context) => {
-      queryClient.setQueryData(
-        [PDF_GET_DOCUMENTS_KEY, chartType],
-        (prev: Chart[]) => context?.prevQueryData ?? prev
-      );
+      if (context?.prevQueryData) {
+        queryClient.setQueryData(
+          [PDF_GET_DOCUMENTS_KEY, chartType],
+          context?.prevQueryData
+        );
+      }
     },
   });
 };
