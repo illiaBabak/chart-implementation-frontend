@@ -6,15 +6,17 @@ export const useUrlParams = () => {
   const getParam = (key: string) => searchParams.get(key);
 
   const setParam = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set(key, value);
-    setSearchParams(params);
+    setSearchParams((prev) => {
+      prev.set(key, value);
+      return prev;
+    });
   };
 
   const deleteParam = (key: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.delete(key);
-    setSearchParams(params);
+    setSearchParams((prev) => {
+      prev.delete(key);
+      return prev;
+    });
   };
 
   return {
