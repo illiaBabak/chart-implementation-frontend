@@ -2,17 +2,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect } from "react";
 import { PDF_GET_DOCUMENTS_KEY } from "src/api/constants";
 import { useGeneratePdf, useGetDocument, useGetDocuments } from "src/api/pdf";
-import { GlobalContext } from "src/context/contexts";
+import { GlobalContext } from "src/contexts/GlobalContext/context";
 import { Category } from "src/types";
 import { v4 as uuidv4 } from "uuid";
-import { useUrlParams } from "src/hooks/useUrlParams";
+import { useSearchParams } from "react-router-dom";
 
 type Props = {
   selectedCategory: Category;
 };
 
 export const PDFButton = ({ selectedCategory }: Props) => {
-  const { getParam, setParam } = useUrlParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { setShouldShowDocumentsList } = useContext(GlobalContext);
 
@@ -22,13 +22,16 @@ export const PDFButton = ({ selectedCategory }: Props) => {
 
   const newDocument = documents?.find((doc) => doc.status === "new");
 
-  const key = getParam("key") ?? "";
+  const key = searchParams.get("key") ?? "";
 
   useEffect(() => {
     if (newDocument?.key && newDocument.key !== key) {
-      setParam("key", newDocument.key);
+      setSearchParams((prev) => {
+        prev.set("key", newDocument.key);
+        return prev;
+      });
     }
-  }, [newDocument, setParam, key]);
+  }, [newDocument, setSearchParams, key]);
 
   const { data } = useGetDocument(key, {
     enabled: !!key,

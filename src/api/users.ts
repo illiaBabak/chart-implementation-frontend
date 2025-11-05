@@ -10,7 +10,12 @@ import { USERS_QUERY_KEY } from "./constants";
 import { fetchWithParams } from "src/utils/fetchWithParams";
 
 const getUsers = async (): Promise<User[]> => {
-  const response = await fetchWithParams(`${API_URL}/users`);
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "users",
+  });
+
+  if (!response.ok) throw new Error(`Error: ${response.status}`);
 
   const data = await response.json();
 

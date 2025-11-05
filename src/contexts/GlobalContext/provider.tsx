@@ -1,4 +1,4 @@
-import { GlobalContext, GlobalContextType } from "./contexts";
+import { GlobalContext, GlobalContextType } from "./context";
 import { ReactNode } from "react";
 
 type GlobalProviderProps = {

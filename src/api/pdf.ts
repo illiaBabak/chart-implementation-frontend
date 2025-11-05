@@ -26,15 +26,17 @@ const generatePdf = async ({
   chartType: Category;
   key: string;
 }): Promise<Blob> => {
-  const response = await fetchWithParams(`${API_URL}/pdf/generate-document`, {
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "pdf/generate-document",
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       chartType,
       key,
     }),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
@@ -46,8 +48,12 @@ const generatePdf = async ({
   return blob;
 };
 
-const getDocuments = async (): Promise<Chart[]> => {
-  const response = await fetchWithParams(`${API_URL}/pdf/get-documents`);
+const getDocuments = async (chartType: Category): Promise<Chart[]> => {
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "pdf/get-documents",
+    urlParams: new URLSearchParams({ chartType }),
+  });
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
 
@@ -57,7 +63,10 @@ const getDocuments = async (): Promise<Chart[]> => {
 };
 
 const getDocument = async (): Promise<Chart | null> => {
-  const response = await fetchWithParams(`${API_URL}/pdf/get-document`);
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "pdf/get-document",
+  });
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
 
@@ -67,7 +76,9 @@ const getDocument = async (): Promise<Chart | null> => {
 };
 
 const deleteDocument = async (key: string): Promise<void> => {
-  const response = await fetchWithParams(`${API_URL}/pdf/delete-document`, {
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "pdf/delete-document",
     method: "DELETE",
     body: JSON.stringify({ key }),
   });
@@ -81,7 +92,9 @@ const generateArchive = async (
   chartType: ChartType,
   language: Language
 ): Promise<Blob> => {
-  const response = await fetchWithParams(`${API_URL}/pdf/generate-archive`, {
+  const response = await fetchWithParams({
+    apiUrl: API_URL,
+    url: "pdf/generate-archive",
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -163,7 +176,7 @@ export const useGetDocuments = (
 ): UseQueryResult<Chart[], Error> =>
   useQuery({
     queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
-    queryFn: getDocuments,
+    queryFn: () => getDocuments(chartType),
     ...options,
   });
 

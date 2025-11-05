@@ -1,4 +1,4 @@
-import { JSX, useMemo, useState, useEffect } from "react";
+import { JSX, useMemo, useState } from "react";
 import { PieChart } from "src/components/PieChart";
 import { BarChart } from "src/components/BarChart";
 import { useGetUsersQuery } from "src/api/users";
@@ -11,23 +11,19 @@ import { createCSV } from "src/utils/createCSV";
 import { ArchiveModal } from "src/components/ArchiveModal";
 import { Dropdown } from "src/components/Dropdown";
 import { CATEGORIES } from "src/utils/constants";
-import { GlobalProvider } from "src/context/providers";
+import { GlobalProvider } from "src/contexts/GlobalContext/provider";
 import { Routes, Route } from "react-router-dom";
 import { Category } from "src/types";
-import { useUrlParams } from "src/hooks/useUrlParams";
 import { capitalize } from "src/utils/capitalize";
 import { removeUnderlines } from "src/utils/removeUnderlines";
+import { useSearchParams } from "react-router-dom";
 
 const DEFAULT_CATEGORY = "age";
 
 export const App = (): JSX.Element => {
-  const { getParam, setParam } = useUrlParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const selectedCategory = getParam("chartType") ?? "";
-
-  useEffect(() => {
-    if (!selectedCategory) setParam("chartType", DEFAULT_CATEGORY);
-  }, [selectedCategory, setParam]);
+  const selectedCategory = searchParams.get("chartType") ?? DEFAULT_CATEGORY;
 
   const [shouldShowDocumentsList, setShouldShowDocumentsList] = useState(false);
   const [shouldShowArchiveModal, setShouldShowArchiveModal] = useState(false);
@@ -99,7 +95,10 @@ export const App = (): JSX.Element => {
                   )}
                   onOptionSelect={(category) => {
                     setShouldShowDocumentsList(false);
-                    setParam("chartType", category as Category);
+                    setSearchParams((prev) => {
+                      prev.set("chartType", category as Category);
+                      return prev;
+                    });
                   }}
                 />
                 <div className="flex flex-row items-center gap-4">

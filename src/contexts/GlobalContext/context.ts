@@ -1,7 +1,7 @@
-import { createContext } from "react";
+import React, { createContext } from "react";
 
 export type GlobalContextType = {
-  setShouldShowDocumentsList: (shouldShowDocumentsList: boolean) => void;
+  setShouldShowDocumentsList: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const GlobalContext = createContext<GlobalContextType>({
