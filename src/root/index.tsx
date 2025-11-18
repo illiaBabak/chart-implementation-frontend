@@ -17,6 +17,7 @@ import { Category } from "src/types";
 import { capitalize } from "src/utils/capitalize";
 import { removeUnderlines } from "src/utils/removeUnderlines";
 import { useSearchParams } from "react-router-dom";
+import { fillUpSpaces } from "src/utils/fillUpSpaces";
 
 const DEFAULT_CATEGORY = "age";
 
@@ -96,7 +97,10 @@ export const App = (): JSX.Element => {
                   onOptionSelect={(category) => {
                     setShouldShowDocumentsList(false);
                     setSearchParams((prev) => {
-                      prev.set("chartType", category as Category);
+                      prev.set(
+                        "chartType",
+                        fillUpSpaces((category as Category).toLocaleLowerCase())
+                      );
                       return prev;
                     });
                   }}

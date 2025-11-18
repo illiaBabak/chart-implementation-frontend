@@ -6,7 +6,6 @@ import {
   UseQueryOptions,
   useQueryClient,
 } from "@tanstack/react-query";
-import { API_URL } from "src/utils/constants";
 import {
   PDF_DELETE_DOCUMENT_KEY,
   PDF_EXPORT_ARCHIVE_KEY,
@@ -27,7 +26,6 @@ const generatePdf = async ({
   key: string;
 }): Promise<Blob> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "pdf/generate-document",
     method: "POST",
     body: JSON.stringify({
@@ -50,7 +48,6 @@ const generatePdf = async ({
 
 const getDocuments = async (chartType: Category): Promise<Chart[]> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "pdf/get-documents",
     urlParams: new URLSearchParams({ chartType }),
   });
@@ -62,10 +59,10 @@ const getDocuments = async (chartType: Category): Promise<Chart[]> => {
   return isChartArray(data) ? data : [];
 };
 
-const getDocument = async (): Promise<Chart | null> => {
+const getDocument = async (key: string): Promise<Chart | null> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "pdf/get-document",
+    urlParams: new URLSearchParams({ key }),
   });
 
   if (!response.ok) throw new Error(`Error: ${response.status}`);
@@ -77,10 +74,12 @@ const getDocument = async (): Promise<Chart | null> => {
 
 const deleteDocument = async (key: string): Promise<void> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "pdf/delete-document",
     method: "DELETE",
     body: JSON.stringify({ key }),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   if (!response.ok)
@@ -93,7 +92,6 @@ const generateArchive = async (
   language: Language
 ): Promise<Blob> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "pdf/generate-archive",
     method: "POST",
     headers: {
@@ -128,44 +126,53 @@ export const useGeneratePdf = (): UseMutationResult<
     mutationFn: generatePdf,
     onSettled: async (_, __, { chartType, key }) => {
       queryClient.invalidateQueries({
-        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType, key],
+        queryKey: [PDF_GET_DOCUMENTS_KEY, chartType],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PDF_GET_DOCUMENT_KEY, key],
       });
     },
     onMutate: async (variables) => {
-      const prevQueryData = queryClient.getQueryData<Chart[]>([
+      const prevDocumentsList = queryClient.getQueryData<Chart[]>([
         PDF_GET_DOCUMENTS_KEY,
         variables.chartType,
       ]);
 
       const latestVersion = Math.max(
-        ...(prevQueryData?.map((doc) => doc.version ?? 0) ?? [0])
+        ...(prevDocumentsList?.map((doc) => doc.version ?? 0) ?? [0])
       );
+
+      const newDocument = {
+        chart_type: variables.chartType,
+        status: "new",
+        key: variables.key,
+        url: null,
+        version: latestVersion + 1,
+      };
 
       queryClient.setQueryData(
         [PDF_GET_DOCUMENTS_KEY, variables.chartType],
         (prev: Chart[]) => {
-          return [
-            ...(prev ?? []),
-            {
-              chart_type: variables.chartType,
-              status: "new",
-              key: variables.key,
-              url: null,
-              version: latestVersion + 1,
-            },
-          ];
+          return [...(prev ?? []), newDocument];
         }
       );
 
-      return { prevQueryData };
+      queryClient.setQueryData(
+        [PDF_GET_DOCUMENT_KEY, variables.key],
+        newDocument
+      );
+
+      return { prevDocumentsList };
     },
-    onError: async (_, { chartType }, context) => {
-      if (context?.prevQueryData) {
+    onError: async (_, { chartType, key }, context) => {
+      if (context?.prevDocumentsList) {
         queryClient.setQueryData(
           [PDF_GET_DOCUMENTS_KEY, chartType],
-          context?.prevQueryData
+          context?.prevDocumentsList
         );
       }
+
+      queryClient.removeQueries({ queryKey: [PDF_GET_DOCUMENT_KEY, key] });
     },
   });
 };
@@ -186,7 +193,7 @@ export const useGetDocument = (
 ): UseQueryResult<Chart | null, Error> =>
   useQuery({
     queryKey: [PDF_GET_DOCUMENT_KEY, key],
-    queryFn: getDocument,
+    queryFn: () => getDocument(key),
     ...options,
   });
 

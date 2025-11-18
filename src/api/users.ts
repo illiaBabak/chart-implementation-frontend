@@ -4,14 +4,12 @@ import {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { User } from "src/types";
-import { API_URL } from "src/utils/constants";
 import { isUserArr } from "src/utils/guards";
 import { USERS_QUERY_KEY } from "./constants";
 import { fetchWithParams } from "src/utils/fetchWithParams";
 
 const getUsers = async (): Promise<User[]> => {
   const response = await fetchWithParams({
-    apiUrl: API_URL,
     url: "users",
   });
 

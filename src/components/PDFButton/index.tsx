@@ -1,19 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { PDF_GET_DOCUMENTS_KEY } from "src/api/constants";
 import { useGeneratePdf, useGetDocument, useGetDocuments } from "src/api/pdf";
 import { GlobalContext } from "src/contexts/GlobalContext/context";
 import { Category } from "src/types";
 import { v4 as uuidv4 } from "uuid";
-import { useSearchParams } from "react-router-dom";
 
 type Props = {
   selectedCategory: Category;
 };
 
 export const PDFButton = ({ selectedCategory }: Props) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-
   const { setShouldShowDocumentsList } = useContext(GlobalContext);
 
   const queryClient = useQueryClient();
@@ -22,29 +19,22 @@ export const PDFButton = ({ selectedCategory }: Props) => {
 
   const newDocument = documents?.find((doc) => doc.status === "new");
 
-  const key = searchParams.get("key") ?? "";
+  const key = newDocument?.key ?? "";
 
-  useEffect(() => {
-    if (newDocument?.key && newDocument.key !== key) {
-      setSearchParams((prev) => {
-        prev.set("key", newDocument.key);
-        return prev;
-      });
-    }
-  }, [newDocument, setSearchParams, key]);
-
-  const { data } = useGetDocument(key, {
+  useGetDocument(key, {
     enabled: !!key,
-    refetchInterval: 1000,
-  });
+    refetchInterval: ({ state: { data } }) => {
+      if (data?.status === "new") {
+        return 1000;
+      }
 
-  useEffect(() => {
-    if (data && data.status !== "new") {
       queryClient.invalidateQueries({
         queryKey: [PDF_GET_DOCUMENTS_KEY, data?.chart_type],
       });
-    }
-  }, [data, queryClient]);
+
+      return false;
+    },
+  });
 
   const { mutateAsync: generatePdf } = useGeneratePdf();
 

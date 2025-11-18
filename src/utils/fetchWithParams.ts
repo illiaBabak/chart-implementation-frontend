@@ -1,5 +1,4 @@
 export type FetchWithParamsProps = {
-  apiUrl: string;
   url: string;
   urlParams?: URLSearchParams;
   headers?: Record<string, string>;
@@ -7,8 +6,9 @@ export type FetchWithParamsProps = {
   body?: string;
 };
 
+const API_URL = "http://localhost:3001/api";
+
 export const fetchWithParams = async ({
-  apiUrl,
   url,
   urlParams,
   headers,
@@ -16,7 +16,7 @@ export const fetchWithParams = async ({
   method = "GET",
 }: FetchWithParamsProps) => {
   const response = await fetch(
-    `${apiUrl}/${url}${urlParams ? `?${urlParams.toString()}` : ""}`,
+    `${API_URL}/${url}${urlParams ? `?${urlParams.toString()}` : ""}`,
     { method, body, headers }
   );
 

@@ -55,4 +55,4 @@ export const isChartArray = (value: unknown): value is Chart[] =>
   Array.isArray(value) && value.every(isChart);
 
 export const isCategory = (value: string): value is Category =>
-  CATEGORIES.includes(value as Category);
+  CATEGORIES.includes(value.toLowerCase() as Category);
