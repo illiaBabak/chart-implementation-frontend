@@ -1,116 +1,142 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { BarChart } from "../components/BarChart";
-import { PieChart } from "../components/PieChart";
-import { useState } from "react";
 import { Category, ChartItem } from "src/types";
 import { Dropdown } from "src/components/Dropdown";
 import { CATEGORIES } from "src/utils/constants";
+import { capitalize } from "src/utils/capitalize";
+import { removeUnderlines } from "src/utils/removeUnderlines";
+import { useSearchParams, Routes, Route, MemoryRouter } from "react-router-dom";
+import { fillUpSpaces } from "src/utils/fillUpSpaces";
+import { PieChart } from "src/components/PieChart";
+import { BarChart } from "src/components/BarChart";
 
-const mockChartData: ChartItem[] = [
+const MOCK_CHART_DATA: ChartItem[] = [
   { label: "18-25", percentage: 30, color: "#3B82F6", step: 15 },
-  { label: "26-35", percentage: 45, color: "#EC4899", step: 15 },
+  { label: "26-35", percentage: 50, color: "#EC4899", step: 15 },
   { label: "36-45", percentage: 20, color: "#10B981", step: 15 },
-  { label: "46+", percentage: 5, color: "#F59E0B", step: 15 },
 ];
 
-describe("DropdownMenu", () => {
-  it("should render and select options", () => {
+const RADIUS = 80;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+describe("Dropdown test", () => {
+  it("should select options", () => {
     const Wrapper = () => {
-      const [selectedCategory, setSelectedCategory] = useState<Category>("age");
+      const [searchParams, setSearchParams] = useSearchParams();
+
+      const selectedCategory = searchParams.get("chartType") ?? "age";
 
       return (
         <Dropdown
-          options={CATEGORIES}
-          selectedOption={selectedCategory}
-          onOptionSelect={setSelectedCategory}
+          options={CATEGORIES.map((category) =>
+            capitalize(removeUnderlines(category))
+          )}
+          selectedOption={capitalize(removeUnderlines(selectedCategory))}
+          onOptionSelect={(category) => {
+            setSearchParams((prev) => {
+              prev.set(
+                "chartType",
+                fillUpSpaces((category as Category).toLocaleLowerCase())
+              );
+              return prev;
+            });
+          }}
         />
       );
     };
 
-    render(<Wrapper />);
+    render(
+      <MemoryRouter>
+        <Routes>
+          <Route path="/" element={<Wrapper />} />
+        </Routes>
+      </MemoryRouter>
+    );
 
-    const dropdownButton = screen.getByTestId("dropdown-menu");
+    const dropdown = screen.getByTestId("dropdown");
     const dropdownText = screen.getByTestId("dropdown-text");
 
-    expect(dropdownButton).toBeInTheDocument();
     expect(dropdownText).toHaveTextContent("Age");
 
-    fireEvent.click(dropdownButton);
+    fireEvent.click(dropdown);
 
-    const genderButton = screen.getByTestId("dropdown-category-gender");
-    fireEvent.click(genderButton);
+    const genderOption = screen.getByTestId("option-Gender");
+    fireEvent.click(genderOption);
 
     expect(dropdownText).toHaveTextContent("Gender");
   });
-});
 
-describe("BarChart", () => {
-  beforeEach(() => {
-    render(<BarChart dataToDisplay={mockChartData} />);
+  it("should test pie chart", () => {
+    render(<PieChart dataToDisplay={MOCK_CHART_DATA} />);
+
+    const svg = screen.getByTestId("pie-chart-svg");
+    expect(svg).toBeInTheDocument();
+
+    const segments = MOCK_CHART_DATA.map((segment, index) => {
+      const dash = (segment.percentage / 100) * CIRCUMFERENCE;
+
+      const offset =
+        index === 0
+          ? 0
+          : MOCK_CHART_DATA.slice(0, index).reduce(
+              (sum, s) => sum + (s.percentage / 100) * CIRCUMFERENCE,
+              0
+            );
+
+      return {
+        dash,
+        offset,
+      };
+    });
+
+    MOCK_CHART_DATA.map((el, index) => {
+      const currentSegment = screen.getByTestId(`pie-segment-${el.label}`);
+
+      expect(currentSegment).toBeInTheDocument();
+
+      const strokeDasharray = currentSegment.getAttribute("stroke-dasharray");
+      const strokeOffset = currentSegment.getAttribute("stroke-dashoffset");
+
+      expect(strokeDasharray).toBe(
+        `${segments[index].dash} ${CIRCUMFERENCE - segments[index].dash}`
+      );
+      expect(strokeOffset).toBe(`${-segments[index].offset}`);
+    });
   });
 
-  it("should render chart with data", () => {
-    const chartContainer = screen.getByTestId("bar-chart");
-    const chartTitle = screen.getByTestId("bar-chart-title");
-    const chart = screen.getByTestId("bar-chart-container");
+  it("should test bar chart", () => {
+    render(<BarChart dataToDisplay={MOCK_CHART_DATA} />);
 
-    expect(chartContainer).toBeInTheDocument();
-    expect(chartTitle).toBeInTheDocument();
-    expect(chart).toBeInTheDocument();
-  });
+    const barChartContainer = screen.getByTestId("bar-chart-container");
+    expect(barChartContainer).toBeInTheDocument();
 
-  it("should handle data items", () => {
-    expect(screen.getByTestId("bar-label-18-25")).toBeInTheDocument();
-    expect(screen.getByTestId("bar-label-26-35")).toBeInTheDocument();
-    expect(screen.getByTestId("bar-label-36-45")).toBeInTheDocument();
-    expect(screen.getByTestId("bar-label-46+")).toBeInTheDocument();
-  });
+    const expectedPercentageMarkers = MOCK_CHART_DATA.length
+      ? Array.from({ length: 6 }, (_, index) =>
+          (MOCK_CHART_DATA[0].step * index).toFixed(1)
+        ).reverse()
+      : [];
 
-  it("should render bar columns with correct colors", () => {
-    const column18_25 = screen.getByTestId("bar-column-18-25");
-    const column26_35 = screen.getByTestId("bar-column-26-35");
-    const column36_45 = screen.getByTestId("bar-column-36-45");
-    const column46_plus = screen.getByTestId("bar-column-46+");
+    const getBarHeight = (percentage: number) => {
+      return `${
+        percentage *
+        (50 / Math.max(...MOCK_CHART_DATA.map((item) => item.percentage)))
+      }%`;
+    };
 
-    expect(column18_25).toHaveStyle({ backgroundColor: "#3B82F6" });
-    expect(column26_35).toHaveStyle({ backgroundColor: "#EC4899" });
-    expect(column36_45).toHaveStyle({ backgroundColor: "#10B981" });
-    expect(column46_plus).toHaveStyle({ backgroundColor: "#F59E0B" });
-  });
-});
+    expectedPercentageMarkers.map((expectedPercantageMarker) => {
+      const expectedMarker = screen.getByTestId(
+        `percentage-marker-${expectedPercantageMarker}`
+      );
 
-describe("PieChart", () => {
-  beforeEach(() => {
-    render(<PieChart dataToDisplay={mockChartData} />);
-  });
+      expect(expectedMarker).toBeInTheDocument();
+    });
 
-  it("should render chart with data", () => {
-    const chartContainer = screen.getByTestId("pie-chart");
-    const chartTitle = screen.getByTestId("pie-chart-title");
-    const chartSvg = screen.getByTestId("pie-chart-svg");
+    MOCK_CHART_DATA.map((el) => {
+      const barColumn = screen.getByTestId(`bar-column-${el.label}`);
 
-    expect(chartContainer).toBeInTheDocument();
-    expect(chartTitle).toBeInTheDocument();
-    expect(chartSvg).toBeInTheDocument();
-  });
+      expect(barColumn).toBeInTheDocument();
 
-  it("should handle data items", () => {
-    expect(screen.getByTestId("pie-segment-18-25")).toBeInTheDocument();
-    expect(screen.getByTestId("pie-segment-26-35")).toBeInTheDocument();
-    expect(screen.getByTestId("pie-segment-36-45")).toBeInTheDocument();
-    expect(screen.getByTestId("pie-segment-46+")).toBeInTheDocument();
-  });
-
-  it("should render pie segments with correct stroke colors", () => {
-    const segment18_25 = screen.getByTestId("pie-segment-18-25");
-    const segment26_35 = screen.getByTestId("pie-segment-26-35");
-    const segment36_45 = screen.getByTestId("pie-segment-36-45");
-    const segment46_plus = screen.getByTestId("pie-segment-46+");
-
-    expect(segment18_25).toHaveAttribute("stroke", "#3B82F6");
-    expect(segment26_35).toHaveAttribute("stroke", "#EC4899");
-    expect(segment36_45).toHaveAttribute("stroke", "#10B981");
-    expect(segment46_plus).toHaveAttribute("stroke", "#F59E0B");
+      expect(barColumn).toHaveStyle(`height: ${getBarHeight(el.percentage)}`);
+    });
   });
 });

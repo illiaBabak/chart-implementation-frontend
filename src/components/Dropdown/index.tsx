@@ -26,7 +26,10 @@ export const Dropdown = <T extends string>({
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-base font-medium text-gray-700">
+            <span
+              data-testid="dropdown-text"
+              className="text-base font-medium text-gray-700"
+            >
               {selectedOption}
             </span>
           </div>

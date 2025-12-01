@@ -1,22 +1,24 @@
-import { CSSProperties, JSX, ReactNode } from "react";
+import { CSSProperties, HTMLAttributes, JSX, ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
   content: string;
   className?: string;
   style?: CSSProperties;
-};
+} & HTMLAttributes<HTMLDivElement>;
 
 export const Tooltip = ({
   children,
   content,
   className,
   style,
+  ...rest
 }: Props): JSX.Element => {
   return (
     <div
       className={`relative flex flex-row items-end group ${className}`}
       style={style}
+      {...rest}
     >
       {children}
       {content && (

@@ -24,7 +24,11 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
       <div className="flex flex-row w-full h-full">
         <div className="flex flex-col justify-between h-[calc(100%-40px)] pr-2 text-sm text-gray-600 shrink-0">
           {percentageMarkers.map((percentage) => (
-            <div key={`percentage-${percentage}`} className="text-right">
+            <div
+              data-testid={`percentage-marker-${percentage}`}
+              key={`percentage-${percentage}`}
+              className="text-right"
+            >
               {percentage}%
             </div>
           ))}
@@ -44,6 +48,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
             <div className="flex flex-row h-[calc(100%-40px)] gap-2 sm:gap-3 md:gap-4 items-end border-s-3 z-20 border-zinc-400 px-2 sm:px-3 min-w-max">
               {dataToDisplay.map((item, index) => (
                 <Tooltip
+                  data-testid={`bar-column-${item.label}`}
                   key={`bar-chart-item-${item.label}-${index}`}
                   content={item.label}
                   style={{
@@ -51,7 +56,6 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
                   }}
                 >
                   <div
-                    data-testid={`bar-column-${item.label}`}
                     style={{
                       backgroundColor: item.color,
                     }}
@@ -65,7 +69,6 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
               {dataToDisplay.map((item, index) => (
                 <div
                   key={`label-${item.label}-${index}`}
-                  data-testid={`bar-label-${item.label}`}
                   className="h-[16px] w-[20px] rotate-45 sm:min-w-[22px] sm:max-w-[22px] md:min-w-[25px] md:max-w-[25px] text-center text-[10px] text-gray-600 truncate"
                 >
                   {item.label}

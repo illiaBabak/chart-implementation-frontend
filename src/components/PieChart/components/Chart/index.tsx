@@ -1,4 +1,4 @@
-import { JSX, useRef, useState } from "react";
+import { JSX, useState } from "react";
 import { Tooltip } from "src/components/Tooltip";
 import { ChartProps } from "src/types";
 
@@ -11,7 +11,22 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
   const [hoveredSectionText, setHoveredSectionText] = useState("");
 
-  const offset = useRef(0);
+  const segments = dataToDisplay.map((segment, index) => {
+    const dash = (segment.percentage / 100) * CIRCUMFERENCE;
+
+    const offset =
+      index === 0
+        ? 0
+        : dataToDisplay
+            .slice(0, index)
+            .reduce((sum, s) => sum + (s.percentage / 100) * CIRCUMFERENCE, 0);
+
+    return {
+      ...segment,
+      dash,
+      offset,
+    };
+  });
 
   return (
     <Tooltip content={hoveredSectionText}>
@@ -21,13 +36,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
         height={250}
         className="flex justify-center items-center"
       >
-        {dataToDisplay.map((segment, index) => {
-          const dash = (segment.percentage / 100) * CIRCUMFERENCE;
-          const dashOffset = offset.current;
-
-          if (index === dataToDisplay.length - 1) offset.current = 0;
-          else offset.current += dash;
-
+        {segments.map((segment, index) => {
           return (
             <circle
               key={`circle-${index}-${segment.label}`}
@@ -38,8 +47,10 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
               fill="none"
               stroke={segment.color}
               strokeWidth={STROKE_WIDTH}
-              strokeDasharray={`${dash} ${CIRCUMFERENCE - dash}`}
-              strokeDashoffset={-dashOffset}
+              strokeDasharray={`${segment.dash} ${
+                CIRCUMFERENCE - segment.dash
+              }`}
+              strokeDashoffset={-segment.offset}
               transform={`rotate(-90, ${CX}, ${CY})`}
               className="cursor-pointer transition-opacity hover:opacity-90"
               onMouseEnter={() => setHoveredSectionText(segment.label)}
