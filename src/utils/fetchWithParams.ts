@@ -6,7 +6,8 @@ export type FetchWithParamsProps = {
   body?: string;
 };
 
-const API_URL = "http://localhost:3001/api";
+const API_URL =
+  "https://chart-implementation-backend-production.up.railway.app/api";
 
 export const fetchWithParams = async ({
   url,

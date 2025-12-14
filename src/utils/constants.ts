@@ -21,5 +21,3 @@ export const LANGUAGE_OPTIONS: { label: Language; labelToShow: string }[] = [
   { label: "日本語", labelToShow: "🇯🇵 日本語" },
   { label: "한국어", labelToShow: "🇰🇷 한국어" },
 ];
-
-export const API_URL = "http://localhost:3001/api";
