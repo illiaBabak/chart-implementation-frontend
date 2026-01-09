@@ -1,6 +1,16 @@
 import { JSX } from "react";
 import { Tooltip } from "src/components/Tooltip";
-import { ChartProps } from "src/types";
+import { ChartItem, ChartProps } from "src/types";
+
+export const getBarHeight = (
+  percentage: number,
+  dataToDisplay: ChartItem[]
+) => {
+  return `${
+    percentage *
+    (50 / Math.max(...dataToDisplay.map((item) => item.percentage)))
+  }%`;
+};
 
 export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
   const percentageMarkers = dataToDisplay.length
@@ -8,13 +18,6 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
         (dataToDisplay[0].step * index).toFixed(1)
       ).reverse()
     : [];
-
-  const getBarHeight = (percentage: number) => {
-    return `${
-      percentage *
-      (50 / Math.max(...dataToDisplay.map((item) => item.percentage)))
-    }%`;
-  };
 
   return (
     <div
@@ -52,7 +55,7 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
                   key={`bar-chart-item-${item.label}-${index}`}
                   content={item.label}
                   style={{
-                    height: getBarHeight(item.percentage),
+                    height: getBarHeight(item.percentage, dataToDisplay),
                   }}
                 >
                   <div

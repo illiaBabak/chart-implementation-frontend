@@ -7,8 +7,10 @@ import { capitalize } from "src/utils/capitalize";
 import { removeUnderlines } from "src/utils/removeUnderlines";
 import { useSearchParams, Routes, Route, MemoryRouter } from "react-router-dom";
 import { fillUpSpaces } from "src/utils/fillUpSpaces";
-import { PieChart } from "src/components/PieChart";
-import { BarChart } from "src/components/BarChart";
+
+import { calcSegments } from "src/components/PieChart/components/Chart";
+import { getBarHeight } from "src/components/BarChart/components/Chart";
+import { createCSV } from "src/utils/createCSV";
 
 const MOCK_CHART_DATA: ChartItem[] = [
   { label: "18-25", percentage: 30, color: "#3B82F6", step: 15 },
@@ -16,8 +18,21 @@ const MOCK_CHART_DATA: ChartItem[] = [
   { label: "36-45", percentage: 20, color: "#10B981", step: 15 },
 ];
 
-const RADIUS = 80;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const MOCK_PIE_SEGMENTS = [
+  { dash: 150.79644737231007, offset: 0, ...MOCK_CHART_DATA[0] },
+  {
+    dash: 251.32741228718345,
+    offset: 150.79644737231007,
+    ...MOCK_CHART_DATA[1],
+  },
+  {
+    dash: 100.53096491487338,
+    offset: 402.1238596594935,
+    ...MOCK_CHART_DATA[2],
+  },
+];
+
+const MOCK_BAR_HEIGHTS = ["30%", "50%", "20%"];
 
 describe("Dropdown test", () => {
   it("should select options", () => {
@@ -65,78 +80,39 @@ describe("Dropdown test", () => {
 
     expect(dropdownText).toHaveTextContent("Gender");
   });
+});
 
+describe("Test charts", () => {
   it("should test pie chart", () => {
-    render(<PieChart dataToDisplay={MOCK_CHART_DATA} />);
+    const currentSegments = calcSegments(MOCK_CHART_DATA);
 
-    const svg = screen.getByTestId("pie-chart-svg");
-    expect(svg).toBeInTheDocument();
-
-    const segments = MOCK_CHART_DATA.map((segment, index) => {
-      const dash = (segment.percentage / 100) * CIRCUMFERENCE;
-
-      const offset =
-        index === 0
-          ? 0
-          : MOCK_CHART_DATA.slice(0, index).reduce(
-              (sum, s) => sum + (s.percentage / 100) * CIRCUMFERENCE,
-              0
-            );
-
-      return {
-        dash,
-        offset,
-      };
-    });
-
-    MOCK_CHART_DATA.map((el, index) => {
-      const currentSegment = screen.getByTestId(`pie-segment-${el.label}`);
-
-      expect(currentSegment).toBeInTheDocument();
-
-      const strokeDasharray = currentSegment.getAttribute("stroke-dasharray");
-      const strokeOffset = currentSegment.getAttribute("stroke-dashoffset");
-
-      expect(strokeDasharray).toBe(
-        `${segments[index].dash} ${CIRCUMFERENCE - segments[index].dash}`
-      );
-      expect(strokeOffset).toBe(`${-segments[index].offset}`);
-    });
+    expect(currentSegments).toEqual(MOCK_PIE_SEGMENTS);
   });
 
   it("should test bar chart", () => {
-    render(<BarChart dataToDisplay={MOCK_CHART_DATA} />);
+    const currentHeights = MOCK_CHART_DATA.map((item) =>
+      getBarHeight(item.percentage, MOCK_CHART_DATA)
+    );
 
-    const barChartContainer = screen.getByTestId("bar-chart-container");
-    expect(barChartContainer).toBeInTheDocument();
+    expect(currentHeights).toEqual(MOCK_BAR_HEIGHTS);
+  });
+});
 
-    const expectedPercentageMarkers = MOCK_CHART_DATA.length
-      ? Array.from({ length: 6 }, (_, index) =>
-          (MOCK_CHART_DATA[0].step * index).toFixed(1)
-        ).reverse()
-      : [];
+describe("Test csv generation", () => {
+  it("should create correct content", async () => {
+    const csv = createCSV(MOCK_CHART_DATA);
+    const csvContent = await csv.text();
 
-    const getBarHeight = (percentage: number) => {
-      return `${
-        percentage *
-        (50 / Math.max(...MOCK_CHART_DATA.map((item) => item.percentage)))
-      }%`;
-    };
+    const headers = Object.keys(MOCK_CHART_DATA[0]).join(",");
 
-    expectedPercentageMarkers.map((expectedPercantageMarker) => {
-      const expectedMarker = screen.getByTestId(
-        `percentage-marker-${expectedPercantageMarker}`
-      );
+    const content = MOCK_CHART_DATA.map((el) =>
+      Object.values(el)
+        .map((value) => `"${value}"`)
+        .join(",")
+    ).join("\n");
 
-      expect(expectedMarker).toBeInTheDocument();
-    });
+    const expectedContent = headers + "\n" + content;
 
-    MOCK_CHART_DATA.map((el) => {
-      const barColumn = screen.getByTestId(`bar-column-${el.label}`);
-
-      expect(barColumn).toBeInTheDocument();
-
-      expect(barColumn).toHaveStyle(`height: ${getBarHeight(el.percentage)}`);
-    });
+    expect(csvContent).toBe(expectedContent);
   });
 });

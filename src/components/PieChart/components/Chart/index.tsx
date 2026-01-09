@@ -1,6 +1,6 @@
 import { JSX, useState } from "react";
 import { Tooltip } from "src/components/Tooltip";
-import { ChartProps } from "src/types";
+import { ChartItem, ChartProps } from "src/types";
 
 const RADIUS = 80;
 const STROKE_WIDTH = 40;
@@ -8,10 +8,8 @@ const CX = 125;
 const CY = 125;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
-  const [hoveredSectionText, setHoveredSectionText] = useState("");
-
-  const segments = dataToDisplay.map((segment, index) => {
+export const calcSegments = (dataToDisplay: ChartItem[]) =>
+  dataToDisplay.map((segment, index) => {
     const dash = (segment.percentage / 100) * CIRCUMFERENCE;
 
     const offset =
@@ -27,6 +25,11 @@ export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
       offset,
     };
   });
+
+export const Chart = ({ dataToDisplay }: ChartProps): JSX.Element => {
+  const [hoveredSectionText, setHoveredSectionText] = useState("");
+
+  const segments = calcSegments(dataToDisplay);
 
   return (
     <Tooltip content={hoveredSectionText}>
